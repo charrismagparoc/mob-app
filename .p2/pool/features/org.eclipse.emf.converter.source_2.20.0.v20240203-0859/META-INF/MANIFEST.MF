@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Created-By: Maven Archiver 3.6.1
+Build-Jdk-Spec: 17
+
+Name: META-INF/maven/org.eclipse.emf.features/org.eclipse.emf.converter/
+ pom.xml
+SHA-256-Digest: rccmBn/9ECTqZoe0gTMtJ2tYLMTxRi0fkdsP1RHhfCE=
+
+Name: epl-2.0.html
+SHA-256-Digest: koxKavfpz4JYnlYPmP+7at5zhbWf7Iy07zamu5HPcBg=
+
+Name: feature.xml
+SHA-256-Digest: tqlUCCjKABEyG5KizMJBiqlnM/qg9m2wOWDOXb6F6AE=
+
+Name: META-INF/maven/org.eclipse.emf.features/org.eclipse.emf.converter/
+ pom.properties
+SHA-256-Digest: 12z4dqzI53ZB4TruWgy+tV5FcnQaMkTwtgidAmfMzH4=
+
+Name: feature.properties
+SHA-256-Digest: bLRk4x/5IzVfHFbJil3JKZxhTtJvaSvWLpH80E2Hw44=
+
+Name: license.html
+SHA-256-Digest: Dv5NbrV590iFepPFp4HDAA9w8zkHSynRW5FCE+FLHVM=
+

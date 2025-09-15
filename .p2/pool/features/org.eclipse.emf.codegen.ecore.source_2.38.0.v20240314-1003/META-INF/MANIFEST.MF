@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Created-By: Maven Archiver 3.6.1
+Build-Jdk-Spec: 17
+
+Name: epl-2.0.html
+SHA-256-Digest: koxKavfpz4JYnlYPmP+7at5zhbWf7Iy07zamu5HPcBg=
+
+Name: META-INF/maven/org.eclipse.emf.features/org.eclipse.emf.codegen.ec
+ ore/pom.properties
+SHA-256-Digest: CdmncKaouyJQfjL5Ju7U2wD7gaIgBN676TLUzW5wFqM=
+
+Name: feature.xml
+SHA-256-Digest: JBwSyTIX7AjJsXPyjij7rD9lCs5QzqVBwIGQUXJ/hx8=
+
+Name: META-INF/maven/org.eclipse.emf.features/org.eclipse.emf.codegen.ec
+ ore/pom.xml
+SHA-256-Digest: 3f1RTC/duA+f6AJXa5FDOJ8mctYBRBh8jJRMS8LroTA=
+
+Name: feature.properties
+SHA-256-Digest: ItYQkapiQjYBin4iH0MlvPd437w/isF00ms9Uk7gMh0=
+
+Name: license.html
+SHA-256-Digest: Dv5NbrV590iFepPFp4HDAA9w8zkHSynRW5FCE+FLHVM=
+
