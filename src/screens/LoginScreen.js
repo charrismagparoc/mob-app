@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
-import { useApp } from '../context/AppContext';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useApp } from '../context/AppContext';
 import { C } from '../styles/colors';
 
 export default function LoginScreen() {

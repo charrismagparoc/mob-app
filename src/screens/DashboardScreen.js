@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
-import { useApp } from '../context/AppContext';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useWeather } from '../hooks/useWeather';
+
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Badge, SecHdr } from '../components/Shared';
+import { Sidebar } from '../components/Sidebar';
+import { useApp } from '../context/AppContext';
 import { useRisk } from '../hooks/useRisk';
+import { useWeather } from '../hooks/useWeather';
 import { C, TYPE_COLOR } from '../styles/colors';
-import { Badge, SecHdr, Bar } from '../components/Shared';
 
 function KCard({ emoji, value, label, color }) {
   return (
@@ -31,6 +33,7 @@ export default function DashboardScreen({ navigation }) {
   const w = useWeather();
   const { zoneRisks, highCount, medCount, lowCount, overallScore } = useRisk(residents, incidents, w);
   const [busy, setBusy] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const activeInc = incidents.filter(i => ['Active', 'Pending'].includes(i.status));
   const totalOcc  = evacCenters.reduce((a, c) => a + (c.occupancy || 0), 0);
@@ -40,93 +43,144 @@ export default function DashboardScreen({ navigation }) {
   async function onRefresh() { setBusy(true); await reload(); setBusy(false); }
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={s.pad} refreshControl={<RefreshControl refreshing={busy} onRefresh={onRefresh} tintColor={C.blue} />}>
-      <View style={s.hdr}>
-        <View>
-          <Text style={s.appName}>IDRMS</Text>
-          <Text style={s.appSub}>Brgy. Kauswagan · BDRRMC</Text>
-        </View>
-        <View style={s.hdrR}>
-          <View style={[s.wchip, { borderColor: (RISK_C[w.risk] || C.green) + '44' }]}>
-            <Text style={s.wTxt}>{w.emoji} {w.temp}°C  {w.windKph}km/h</Text>
-            <View style={[s.rpill, { backgroundColor: (RISK_C[w.risk] || C.green) + '22' }]}>
-              <Text style={[s.rpillTxt, { color: RISK_C[w.risk] || C.green }]}>{w.risk}</Text>
-            </View>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      {/* HEADER */}
+      <View style={s.headerContainer}>
+        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={s.hamburger}>
+          <Text style={s.hamburgerText}>☰</Text>
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Dashboard</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView style={s.screen} contentContainerStyle={s.pad} refreshControl={<RefreshControl refreshing={busy} onRefresh={onRefresh} tintColor={C.blue} />}>
+        <View style={s.hdr}>
+          <View>
+            <Text style={s.appName}>IDRMS</Text>
+            <Text style={s.appSub}>Brgy. Kauswagan · BDRRMC</Text>
           </View>
-          <TouchableOpacity onPress={logout}><Text style={s.logoutTxt}>Sign out</Text></TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={[s.banner, { borderColor: oc + '44', backgroundColor: oc + '11' }]}>
-        <View>
-          <Text style={s.bannerLbl}>Overall Risk Level</Text>
-          <Text style={[s.bannerVal, { color: oc }]}>{ol}  —  Score {overallScore}</Text>
-        </View>
-        <View style={[s.dot, { backgroundColor: oc }]} />
-      </View>
-
-      <View style={s.row}><KCard emoji="⚠️" value={incidents.length}                                         label="Total Inc."  color={C.orange} />
-        <KCard emoji="🔴" value={activeInc.length}                                                           label="Active"      color={C.red}    />
-        <KCard emoji="✅" value={incidents.filter(i => i.status === 'Resolved').length}                      label="Resolved"    color={C.green}  />
-        <KCard emoji="📢" value={alerts.length}                                                              label="Alerts"      color={C.blue}   /></View>
-      <View style={[s.row, s.mt0]}><KCard emoji="🏠" value={evacCenters.filter(c => c.status === 'Open').length} label="Open Ctr."  color={C.green}  />
-        <KCard emoji="👥" value={totalOcc}                                                                   label="Evacuees"    color={C.purple} />
-        <KCard emoji="🔴" value={highCount}                                                                  label="High Risk"   color={C.red}    />
-        <KCard emoji="👤" value={residents.length}                                                           label="Residents"   color={C.blue}   /></View>
-      <View style={[s.row, s.mt0]}><KCard emoji="🚨" value={highCount}                                       label="High"        color={C.red}    />
-        <KCard emoji="⚡" value={medCount}                                                                   label="Medium"      color={C.orange} />
-        <KCard emoji="🟢" value={lowCount}                                                                   label="Low"         color={C.green}  />
-        <KCard emoji="📢" value={alerts.filter(a => a.level === 'Danger').length}                            label="Danger Alts" color={C.red}    /></View>
-
-      <View style={s.card}>
-        <SecHdr title="Active Incidents" count={activeInc.length} right="All →" onRight={() => navigation.navigate('Incidents')} />
-        {activeInc.length === 0
-          ? <Text style={s.empty}>✅  All clear — no active incidents</Text>
-          : activeInc.slice(0, 6).map(i => (
-              <View key={String(i.id)} style={s.irow}>
-                <View style={[s.idot, { backgroundColor: TYPE_COLOR[i.type] || C.blue }]} />
-                <View style={{ flex: 1 }}>
-                  <Text style={s.ititle}>{i.type} — {i.zone}</Text>
-                  {i.location ? <Text style={s.isub}>{i.location}</Text> : null}
-                </View>
-                <Badge label={i.severity} variant={i.severity} />
+          <View style={s.hdrR}>
+            <View style={[s.wchip, { borderColor: (RISK_C[w.risk] || C.green) + '44' }]}>
+              <Text style={s.wTxt}>{w.emoji} {w.temp}°C  {w.windKph}km/h</Text>
+              <View style={[s.rpill, { backgroundColor: (RISK_C[w.risk] || C.green) + '22' }]}>
+                <Text style={[s.rpillTxt, { color: RISK_C[w.risk] || C.green }]}>{w.risk}</Text>
               </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={[s.banner, { borderColor: oc + '44', backgroundColor: oc + '11' }]}>
+          <View>
+            <Text style={s.bannerLbl}>Overall Risk Level</Text>
+            <Text style={[s.bannerVal, { color: oc }]}>{ol}  —  Score {overallScore}</Text>
+          </View>
+          <View style={[s.dot, { backgroundColor: oc }]} />
+        </View>
+
+        <View style={s.row}><KCard emoji="⚠️" value={incidents.length}                                         label="Total Inc."  color={C.orange} />
+          <KCard emoji="🔴" value={activeInc.length}                                                           label="Active"      color={C.red}    />
+          <KCard emoji="✅" value={incidents.filter(i => i.status === 'Resolved').length}                      label="Resolved"    color={C.green}  />
+          <KCard emoji="📢" value={alerts.length}                                                              label="Alerts"      color={C.blue}   /></View>
+        <View style={[s.row, s.mt0]}><KCard emoji="🏠" value={evacCenters.filter(c => c.status === 'Open').length} label="Open Ctr."  color={C.green}  />
+          <KCard emoji="👥" value={totalOcc}                                                                   label="Evacuees"    color={C.purple} />
+          <KCard emoji="🔴" value={highCount}                                                                  label="High Risk"   color={C.red}    />
+          <KCard emoji="👤" value={residents.length}                                                           label="Residents"   color={C.blue}   /></View>
+        <View style={[s.row, s.mt0]}><KCard emoji="🚨" value={highCount}                                       label="High"        color={C.red}    />
+          <KCard emoji="⚡" value={medCount}                                                                   label="Medium"      color={C.orange} />
+          <KCard emoji="🟢" value={lowCount}                                                                   label="Low"         color={C.green}  />
+          <KCard emoji="📢" value={alerts.filter(a => a.level === 'Danger').length}                            label="Danger Alts" color={C.red}    /></View>
+
+        <View style={s.card}>
+          <SecHdr title="Active Incidents" count={activeInc.length} right="All →" onRight={() => navigation.navigate('Incidents')} />
+          {activeInc.length === 0
+            ? <Text style={s.empty}>✅  All clear — no active incidents</Text>
+            : activeInc.slice(0, 6).map(i => (
+                <View key={String(i.id)} style={s.irow}>
+                  <View style={[s.idot, { backgroundColor: TYPE_COLOR[i.type] || C.blue }]} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.ititle}>{i.type} — {i.zone}</Text>
+                    {i.location ? <Text style={s.isub}>{i.location}</Text> : null}
+                  </View>
+                  <Badge label={i.severity} variant={i.severity} />
+                </View>
+            ))}
+        </View>
+
+        <View style={s.card}>
+          <SecHdr title="Zone Risk Levels" right="Details →" onRight={() => navigation.navigate('Risk')} />
+          {zoneRisks.map(z => (
+            <View key={z.zone} style={s.zrow}>
+              <Text style={s.zname}>{z.zone}</Text>
+              <View style={s.ztrack}><View style={[s.zfill, { width: z.score + '%', backgroundColor: z.riskColor }]} /></View>
+              <Text style={[s.zscore, { color: z.riskColor }]}>{z.score}</Text>
+              <View style={[s.rpill, { backgroundColor: z.riskColor + '22', marginLeft: 0 }]}>
+                <Text style={[s.rpillTxt, { color: z.riskColor }]}>{z.riskLabel}</Text>
+              </View>
+            </View>
           ))}
-      </View>
+        </View>
 
-      <View style={s.card}>
-        <SecHdr title="Zone Risk Levels" right="Details →" onRight={() => navigation.navigate('Risk')} />
-        {zoneRisks.map(z => (
-          <View key={z.zone} style={s.zrow}>
-            <Text style={s.zname}>{z.zone}</Text>
-            <View style={s.ztrack}><View style={[s.zfill, { width: z.score + '%', backgroundColor: z.riskColor }]} /></View>
-            <Text style={[s.zscore, { color: z.riskColor }]}>{z.score}</Text>
-            <View style={[s.rpill, { backgroundColor: z.riskColor + '22', marginLeft: 0 }]}>
-              <Text style={[s.rpillTxt, { color: z.riskColor }]}>{z.riskLabel}</Text>
+        <View style={s.card}>
+          <SecHdr title="Recent Activity" />
+          {activityLog.slice(0, 8).map(a => (
+            <View key={String(a.id)} style={s.arow}>
+              <View style={[s.adot, { backgroundColor: a.urgent ? C.red : C.blue }]} />
+              <View style={{ flex: 1 }}>
+                <Text style={s.atxt} numberOfLines={1}>{a.action}</Text>
+                <Text style={s.ameta}>{a.userName}  ·  {new Date(a.createdAt).toLocaleTimeString()}</Text>
+              </View>
             </View>
-          </View>
-        ))}
-      </View>
+          ))}
+          {activityLog.length === 0 && <Text style={s.empty}>No activity yet</Text>}
+        </View>
+        <View style={{ height: 24 }} />
+      </ScrollView>
 
-      <View style={s.card}>
-        <SecHdr title="Recent Activity" />
-        {activityLog.slice(0, 8).map(a => (
-          <View key={String(a.id)} style={s.arow}>
-            <View style={[s.adot, { backgroundColor: a.urgent ? C.red : C.blue }]} />
-            <View style={{ flex: 1 }}>
-              <Text style={s.atxt} numberOfLines={1}>{a.action}</Text>
-              <Text style={s.ameta}>{a.userName}  ·  {new Date(a.createdAt).toLocaleTimeString()}</Text>
-            </View>
-          </View>
-        ))}
-        {activityLog.length === 0 && <Text style={s.empty}>No activity yet</Text>}
-      </View>
-      <View style={{ height: 24 }} />
-    </ScrollView>
+      {/* SIDEBAR */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentRoute="Dashboard"
+        onNavigate={(screenName) => {
+          navigation.navigate(screenName);
+          setSidebarOpen(false);
+        }}
+        onLogout={() => {
+          setSidebarOpen(false);
+          logout();
+        }}
+        userName="User"
+      />
+    </View>
   );
 }
 
 const s = StyleSheet.create({
+  headerContainer: {
+    backgroundColor: C.card,
+    borderBottomColor: C.border,
+    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  hamburger: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  hamburgerText: {
+    fontSize: 24,
+    color: C.t1,
+  },
+  headerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.t1,
+    flex: 1,
+    textAlign: 'center',
+  },
   screen: { flex: 1, backgroundColor: C.bg },
   pad:    { padding: 14 },
   hdr:    { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 13 },
@@ -137,7 +191,6 @@ const s = StyleSheet.create({
   wTxt:   { fontSize: 11, color: C.t1, fontWeight: '600' },
   rpill:  { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10, marginLeft: 4 },
   rpillTxt:{ fontSize: 9, fontWeight: '800', letterSpacing: 0.4 },
-  logoutTxt: { fontSize: 11, color: C.t3 },
   banner: { borderRadius: 12, borderWidth: 1.5, padding: 13, marginBottom: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   bannerLbl: { fontSize: 10, color: C.t3, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
   bannerVal: { fontSize: 17, fontWeight: '800', marginTop: 2 },

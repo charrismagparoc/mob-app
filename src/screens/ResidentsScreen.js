@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
-import { useApp } from '../context/AppContext';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Badge, Chips, Confirm, Empty, FInput, FormModal, FPick, FTags, Search } from '../components/Shared';
+import { Sidebar } from '../components/Sidebar';
+import { useApp } from '../context/AppContext';
+import { RES_STAT, VULN_TAGS, ZONES } from '../data/constants';
 import { C } from '../styles/colors';
-import { Badge, Search, Chips, Confirm, FormModal, FInput, FPick, FTags, Empty } from '../components/Shared';
-import { ZONES, VULN_TAGS, RES_STAT } from '../data/constants';
 
 const EF = { name:'', zone:'Zone 1', address:'', householdMembers:'1', contact:'', evacuationStatus:'Safe', vulnerabilityTags:[], notes:'' };
 
-export default function ResidentsScreen() {
+export default function ResidentsScreen({ navigation }) {
   const { residents, addResident, updateResident, deleteResident, reload } = useApp();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [q, setQ]       = useState('');
   const [fz, setFz]     = useState('All');
   const [fe, setFe]     = useState('All');
@@ -20,6 +22,7 @@ export default function ResidentsScreen() {
   const [delId, setDelId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const list = residents.filter(r => {
     const mq = !q || (r.name + r.address + r.zone).toLowerCase().includes(q.toLowerCase());
@@ -46,6 +49,15 @@ export default function ResidentsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      {/* HEADER */}
+      <View style={s.headerContainer}>
+        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={s.hamburger}>
+          <Text style={s.hamburgerText}>☰</Text>
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Residents</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <View style={s.bar}>
         <Search value={q} onChange={setQ} placeholder="Search residents..." />
         <TouchableOpacity style={s.add} onPress={openAdd}><Text style={s.addTxt}>+ Add</Text></TouchableOpacity>
@@ -90,11 +102,52 @@ export default function ResidentsScreen() {
         <FInput label="Notes" value={form.notes || ''} onChange={v => set('notes', v)} multi />
       </FormModal>
       <Confirm visible={!!delId} title="Delete Resident" msg="Remove this resident record?" onOk={async () => { const r = residents.find(x => x.id === delId); await deleteResident(delId, r && r.name, user.name); setDelId(null); }} onNo={() => setDelId(null)} />
+      
+      {/* SIDEBAR */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentRoute="Residents"
+        onNavigate={(screenName) => {
+          navigation.navigate(screenName);
+          setSidebarOpen(false);
+        }}
+        onLogout={() => {
+          setSidebarOpen(false);
+          logout();
+        }}
+        userName="User"
+      />
     </View>
   );
 }
 
 const s = StyleSheet.create({
+  headerContainer: {
+    backgroundColor: C.card,
+    borderBottomColor: C.border,
+    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  hamburger: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  hamburgerText: {
+    fontSize: 24,
+    color: C.t1,
+  },
+  headerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.t1,
+    flex: 1,
+    textAlign: 'center',
+  },
   bar:    { flexDirection: 'row', gap: 10, padding: 12, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   add:    { backgroundColor: C.purple, borderRadius: 10, paddingHorizontal: 15, justifyContent: 'center', height: 42 },
   addTxt: { color: '#fff', fontWeight: '700', fontSize: 14 },

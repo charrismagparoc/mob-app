@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
-import { useApp } from '../context/AppContext';
-import { useWeather } from '../hooks/useWeather';
-import { useRisk } from '../hooks/useRisk';
-import { C } from '../styles/colors';
-import { Badge, Search, Chips, Bar, Empty } from '../components/Shared';
-import { ZONES, SCORING_RULES } from '../data/constants';
+import { useState } from 'react';
 
-export default function RiskScreen() {
+import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Badge, Bar, Chips, Empty, Search } from '../components/Shared';
+import { Sidebar } from '../components/Sidebar';
+import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { SCORING_RULES, ZONES } from '../data/constants';
+import { useRisk } from '../hooks/useRisk';
+import { useWeather } from '../hooks/useWeather';
+import { C } from '../styles/colors';
+
+export default function RiskScreen({ navigation }) {
   const { incidents, residents } = useApp();
+  const { logout } = useAuth();
   const w = useWeather();
   const { resRisks, zoneRisks, highCount, medCount, lowCount, overallScore } = useRisk(residents, incidents, w);
   const [tab, setTab]       = useState('Zones');
@@ -16,6 +20,7 @@ export default function RiskScreen() {
   const [fRisk, setFRisk]   = useState('All');
   const [fZone, setFZone]   = useState('All');
   const [showS, setShowS]   = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const oc = overallScore >= 70 ? C.red : overallScore >= 40 ? C.orange : C.green;
   const ol = overallScore >= 70 ? 'HIGH' : overallScore >= 40 ? 'MED' : 'LOW';
@@ -27,6 +32,15 @@ export default function RiskScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      {/* HEADER */}
+      <View style={s.headerContainer}>
+        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={s.hamburger}>
+          <Text style={s.hamburgerText}>☰</Text>
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Risk</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <View style={s.kpiHdr}>
         <View style={[s.oCard, { borderColor: oc + '44', backgroundColor: oc + '11' }]}>
           <Text style={s.oLbl}>Overall</Text>
@@ -152,11 +166,52 @@ export default function RiskScreen() {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+
+      {/* SIDEBAR */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentRoute="Risk"
+        onNavigate={(screenName) => {
+          navigation.navigate(screenName);
+          setSidebarOpen(false);
+        }}
+        onLogout={() => {
+          setSidebarOpen(false);
+          logout();
+        }}
+        userName="User"
+      />
     </View>
   );
 }
 
 const s = StyleSheet.create({
+  headerContainer: {
+    backgroundColor: C.card,
+    borderBottomColor: C.border,
+    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  hamburger: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  hamburgerText: {
+    fontSize: 24,
+    color: C.t1,
+  },
+  headerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.t1,
+    flex: 1,
+    textAlign: 'center',
+  },
   kpiHdr:  { flexDirection: 'row', gap: 7, padding: 11, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   oCard:   { flex: 2, borderRadius: 11, padding: 11, alignItems: 'center', borderWidth: 1 },
   oLbl:    { fontSize: 8.5, color: C.t3, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
