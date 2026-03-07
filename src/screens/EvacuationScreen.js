@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
-import { useApp } from '../context/AppContext';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Badge, Bar, Chips, Confirm, Empty, FInput, FormModal, FPick, FTags, Search } from '../components/Shared';
+import { Sidebar } from '../components/Sidebar';
+import { useApp } from '../context/AppContext';
+import { EVAC_STAT, FACILITIES, ZONES } from '../data/constants';
 import { C } from '../styles/colors';
-import { Badge, Search, Chips, Bar, Confirm, FormModal, FInput, FPick, FTags, Empty } from '../components/Shared';
-import { ZONES, EVAC_STAT, FACILITIES } from '../data/constants';
 
 const EF = { name:'', address:'', zone:'Zone 1', status:'Open', capacity:'100', occupancy:'0', contactPerson:'', contact:'', facilitiesAvailable:[] };
 
-export default function EvacuationScreen() {
+export default function EvacuationScreen({ navigation }) {
   const { evacCenters, addEvac, updateEvac, deleteEvac, reload } = useApp();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [q, setQ]     = useState('');
   const [fil, setFil] = useState('All');
   const [form, setForm] = useState({ ...EF });
@@ -19,6 +21,7 @@ export default function EvacuationScreen() {
   const [delId, setDelId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const list = evacCenters.filter(c => {
     const mq = !q || (c.name + c.address + c.zone).toLowerCase().includes(q.toLowerCase());
@@ -48,6 +51,15 @@ export default function EvacuationScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      {/* HEADER */}
+      <View style={s.headerContainer}>
+        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={s.hamburger}>
+          <Text style={s.hamburgerText}>☰</Text>
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Evacuation</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <View style={s.bar}>
         <Search value={q} onChange={setQ} placeholder="Search centers..." />
         <TouchableOpacity style={s.add} onPress={openAdd}><Text style={s.addTxt}>+ Add</Text></TouchableOpacity>
@@ -108,11 +120,52 @@ export default function EvacuationScreen() {
         <FTags label="Facilities" values={form.facilitiesAvailable || []} opts={FACILITIES} onChange={v => set('facilitiesAvailable', v)} />
       </FormModal>
       <Confirm visible={!!delId} title="Delete Center" msg="Remove this evacuation center?" onOk={async () => { const c = evacCenters.find(x => x.id === delId); await deleteEvac(delId, c && c.name, user.name); setDelId(null); }} onNo={() => setDelId(null)} />
+      
+      {/* SIDEBAR */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentRoute="Evacuation"
+        onNavigate={(screenName) => {
+          navigation.navigate(screenName);
+          setSidebarOpen(false);
+        }}
+        onLogout={() => {
+          setSidebarOpen(false);
+          logout();
+        }}
+        userName="User"
+      />
     </View>
   );
 }
 
 const s = StyleSheet.create({
+  headerContainer: {
+    backgroundColor: C.card,
+    borderBottomColor: C.border,
+    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  hamburger: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  hamburgerText: {
+    fontSize: 24,
+    color: C.t1,
+  },
+  headerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.t1,
+    flex: 1,
+    textAlign: 'center',
+  },
   bar:    { flexDirection: 'row', gap: 10, padding: 12, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   add:    { backgroundColor: C.green, borderRadius: 10, paddingHorizontal: 15, justifyContent: 'center', height: 42 },
   addTxt: { color: '#fff', fontWeight: '700', fontSize: 14 },

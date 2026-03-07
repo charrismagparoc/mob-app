@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
-import { useApp } from '../context/AppContext';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Badge, Chips, Confirm, Empty, FInput, FormModal, FPick, Search } from '../components/Shared';
+import { Sidebar } from '../components/Sidebar';
+import { useApp } from '../context/AppContext';
+import { INC_STATUS, SEVERITIES, TYPES, ZONES } from '../data/constants';
 import { C, TYPE_COLOR } from '../styles/colors';
-import { Badge, Search, Chips, Confirm, FormModal, FInput, FPick, Empty } from '../components/Shared';
-import { TYPES, ZONES, SEVERITIES, INC_STATUS } from '../data/constants';
 
 const EMPTY = { type: 'Flood', zone: 'Zone 1', location: '', severity: 'Medium', status: 'Pending', description: '', reporter: '' };
 
-export default function IncidentsScreen() {
+export default function IncidentsScreen({ navigation }) {
   const { incidents, addIncident, updateIncident, deleteIncident, reload } = useApp();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [q, setQ]    = useState('');
   const [fil, setFil]= useState('All');
   const [form, setForm] = useState({ ...EMPTY });
@@ -19,6 +21,7 @@ export default function IncidentsScreen() {
   const [delId, setDelId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const list = incidents.filter(i => {
     const mq = !q || (i.type+i.zone+i.location).toLowerCase().includes(q.toLowerCase());
@@ -45,6 +48,15 @@ export default function IncidentsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      {/* HEADER */}
+      <View style={s.headerContainer}>
+        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={s.hamburger}>
+          <Text style={s.hamburgerText}>☰</Text>
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Incidents</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <View style={s.bar}>
         <Search value={q} onChange={setQ} placeholder="Search incidents..." />
         <TouchableOpacity style={s.add} onPress={openAdd}><Text style={s.addTxt}>+ Add</Text></TouchableOpacity>
@@ -82,11 +94,52 @@ export default function IncidentsScreen() {
         <FInput label="Reporter" value={form.reporter} onChange={v => set('reporter', v)} />
       </FormModal>
       <Confirm visible={!!delId} title="Delete Incident" msg="Remove this incident permanently?" onOk={async () => { const i = incidents.find(x => x.id === delId); await deleteIncident(delId, (i && i.type) || '', user.name); setDelId(null); }} onNo={() => setDelId(null)} />
+      
+      {/* SIDEBAR */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentRoute="Incidents"
+        onNavigate={(screenName) => {
+          navigation.navigate(screenName);
+          setSidebarOpen(false);
+        }}
+        onLogout={() => {
+          setSidebarOpen(false);
+          logout();
+        }}
+        userName="User"
+      />
     </View>
   );
 }
 
 const s = StyleSheet.create({
+  headerContainer: {
+    backgroundColor: C.card,
+    borderBottomColor: C.border,
+    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  hamburger: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  hamburgerText: {
+    fontSize: 24,
+    color: C.t1,
+  },
+  headerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.t1,
+    flex: 1,
+    textAlign: 'center',
+  },
   bar:    { flexDirection: 'row', gap: 10, padding: 12, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   add:    { backgroundColor: C.blue, borderRadius: 10, paddingHorizontal: 15, justifyContent: 'center', height: 42 },
   addTxt: { color: '#fff', fontWeight: '700', fontSize: 14 },

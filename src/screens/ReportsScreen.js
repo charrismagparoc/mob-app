@@ -1,11 +1,13 @@
-import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
-import { useApp } from '../context/AppContext';
-import { useWeather } from '../hooks/useWeather';
-import { useRisk } from '../hooks/useRisk';
-import { C, TYPE_COLOR } from '../styles/colors';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Badge, Bar, SecHdr } from '../components/Shared';
+import { Sidebar } from '../components/Sidebar';
+import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { TYPES } from '../data/constants';
+import { useRisk } from '../hooks/useRisk';
+import { useWeather } from '../hooks/useWeather';
+import { C, TYPE_COLOR } from '../styles/colors';
 
 function K({ emoji, value, label, color }) {
   return (
@@ -23,10 +25,12 @@ const k = StyleSheet.create({
   lbl:   { fontSize: 8.5, color: C.t3, textAlign: 'center', marginTop: 2, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
 });
 
-export default function ReportsScreen() {
+export default function ReportsScreen({ navigation }) {
   const { incidents, alerts, evacCenters, residents } = useApp();
+  const { logout } = useAuth();
   const w  = useWeather();
   const { zoneRisks } = useRisk(residents, incidents, w);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const active   = incidents.filter(i => ['Active','Pending'].includes(i.status));
   const resolved = incidents.filter(i => i.status === 'Resolved');
   const totOcc   = evacCenters.reduce((a,c) => a+(c.occupancy||0),0);
@@ -34,89 +38,141 @@ export default function ReportsScreen() {
   const pctOcc   = totCap > 0 ? Math.round(totOcc/totCap*100) : 0;
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={s.pad}>
-      <Text style={s.title}>Reports & Analytics</Text>
-      <Text style={s.sub}>Live overview — Barangay Kauswagan</Text>
-
-      <View style={s.row}><K emoji="⚠️" value={incidents.length} label="Total Inc."  color={C.orange} />
-        <K emoji="🔴" value={active.length}    label="Active"      color={C.red}    />
-        <K emoji="✅" value={resolved.length}  label="Resolved"    color={C.green}  /></View>
-      <View style={[s.row,{marginTop:0}]}><K emoji="👥" value={residents.length}  label="Residents"  color={C.purple} />
-        <K emoji="🏠" value={pctOcc+'%'}       label="Evac Occ."   color={C.blue}   />
-        <K emoji="📢" value={alerts.length}    label="Alerts"      color={C.yellow} /></View>
-
-      <View style={s.card}>
-        <SecHdr title="Incidents by Type" />
-        {TYPES.map(type => {
-          const cnt = incidents.filter(i => i.type === type).length;
-          const pct = incidents.length > 0 ? Math.round(cnt/incidents.length*100) : 0;
-          const c   = TYPE_COLOR[type] || C.blue;
-          return (
-            <View key={type} style={s.trow}>
-              <Text style={s.tlbl}>{type}</Text>
-              <View style={s.ttrack}><View style={[s.tfill, { width: pct+'%', backgroundColor: c }]} /></View>
-              <Text style={[s.tcnt, { color: c }]}>{cnt}</Text>
-            </View>
-          );
-        })}
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      {/* HEADER */}
+      <View style={s.headerContainer}>
+        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={s.hamburger}>
+          <Text style={s.hamburgerText}>☰</Text>
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Reports</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      <View style={s.card}>
-        <SecHdr title="Zone Risk Summary" />
-        <View style={s.thdr}>
-          <Text style={[s.th, { flex:2 }]}>Zone</Text>
-          <Text style={[s.th, { flex:1.5 }]}>Risk</Text>
-          <Text style={[s.th, { flex:2 }]}>Hazard</Text>
-          <Text style={[s.th, { flex:1, textAlign:'right' }]}>Inc.</Text>
+      <ScrollView style={s.screen} contentContainerStyle={s.pad}>
+        <Text style={s.title}>Reports & Analytics</Text>
+        <Text style={s.sub}>Live overview — Barangay Kauswagan</Text>
+
+        <View style={s.row}><K emoji="⚠️" value={incidents.length} label="Total Inc."  color={C.orange} />
+          <K emoji="🔴" value={active.length}    label="Active"      color={C.red}    />
+          <K emoji="✅" value={resolved.length}  label="Resolved"    color={C.green}  /></View>
+        <View style={[s.row,{marginTop:0}]}><K emoji="👥" value={residents.length}  label="Residents"  color={C.purple} />
+          <K emoji="🏠" value={pctOcc+'%'}       label="Evac Occ."   color={C.blue}   />
+          <K emoji="📢" value={alerts.length}    label="Alerts"      color={C.yellow} /></View>
+
+        <View style={s.card}>
+          <SecHdr title="Incidents by Type" />
+          {TYPES.map(type => {
+            const cnt = incidents.filter(i => i.type === type).length;
+            const pct = incidents.length > 0 ? Math.round(cnt/incidents.length*100) : 0;
+            const c   = TYPE_COLOR[type] || C.blue;
+            return (
+              <View key={type} style={s.trow}>
+                <Text style={s.tlbl}>{type}</Text>
+                <View style={s.ttrack}><View style={[s.tfill, { width: pct+'%', backgroundColor: c }]} /></View>
+                <Text style={[s.tcnt, { color: c }]}>{cnt}</Text>
+              </View>
+            );
+          })}
         </View>
-        {zoneRisks.map(z => {
-          const zi = incidents.filter(i => i.zone === z.zone).length;
-          return (
-            <View key={z.zone} style={s.trow2}>
-              <Text style={[s.td, { flex:2, fontWeight:'600', color:C.t1 }]}>{z.zone}</Text>
-              <View style={{ flex:1.5 }}><Badge label={z.riskLabel} variant={z.riskLabel} /></View>
-              <Text style={[s.td, { flex:2 }]}>{z.mainHazard}</Text>
-              <Text style={[s.td, { flex:1, textAlign:'right', fontWeight:'700', color:C.orange }]}>{zi}</Text>
-            </View>
-          );
-        })}
-      </View>
 
-      <View style={s.card}>
-        <SecHdr title={'Evacuation Centers'} count={evacCenters.length} />
-        {evacCenters.slice(0,8).map(c => (
-          <View key={String(c.id)} style={s.erow}>
-            <View style={{ flex:1 }}>
-              <Text style={s.ename}>{c.name}</Text>
-              <Text style={s.emeta}>{c.zone}  ·  {c.occupancy}/{c.capacity}</Text>
-              <Bar value={c.occupancy} max={c.capacity} height={5} />
-            </View>
-            <View style={{ marginLeft:9 }}><Badge label={c.status} variant={c.status} /></View>
+        <View style={s.card}>
+          <SecHdr title="Zone Risk Summary" />
+          <View style={s.thdr}>
+            <Text style={[s.th, { flex:2 }]}>Zone</Text>
+            <Text style={[s.th, { flex:1.5 }]}>Risk</Text>
+            <Text style={[s.th, { flex:2 }]}>Hazard</Text>
+            <Text style={[s.th, { flex:1, textAlign:'right' }]}>Inc.</Text>
           </View>
-        ))}
-        {evacCenters.length === 0 && <Text style={s.empty}>No centers</Text>}
-      </View>
+          {zoneRisks.map(z => {
+            const zi = incidents.filter(i => i.zone === z.zone).length;
+            return (
+              <View key={z.zone} style={s.trow2}>
+                <Text style={[s.td, { flex:2, fontWeight:'600', color:C.t1 }]}>{z.zone}</Text>
+                <View style={{ flex:1.5 }}><Badge label={z.riskLabel} variant={z.riskLabel} /></View>
+                <Text style={[s.td, { flex:2 }]}>{z.mainHazard}</Text>
+                <Text style={[s.td, { flex:1, textAlign:'right', fontWeight:'700', color:C.orange }]}>{zi}</Text>
+              </View>
+            );
+          })}
+        </View>
 
-      <View style={s.card}>
-        <SecHdr title={'Recent Alerts'} count={alerts.length} />
-        {alerts.slice(0,6).map(a => (
-          <View key={String(a.id)} style={s.arow}>
-            <View style={s.ameta1}>
-              <Badge label={a.level} variant={a.level} />
-              <Text style={s.azone}>{a.zone}</Text>
+        <View style={s.card}>
+          <SecHdr title={'Evacuation Centers'} count={evacCenters.length} />
+          {evacCenters.slice(0,8).map(c => (
+            <View key={String(c.id)} style={s.erow}>
+              <View style={{ flex:1 }}>
+                <Text style={s.ename}>{c.name}</Text>
+                <Text style={s.emeta}>{c.zone}  ·  {c.occupancy}/{c.capacity}</Text>
+                <Bar value={c.occupancy} max={c.capacity} height={5} />
+              </View>
+              <View style={{ marginLeft:9 }}><Badge label={c.status} variant={c.status} /></View>
             </View>
-            <Text style={s.amsg} numberOfLines={1}>{a.message}</Text>
-            <Text style={s.aby}>{a.sent_by}  ·  {a.created_at ? new Date(a.created_at).toLocaleDateString() : ''}</Text>
-          </View>
-        ))}
-        {alerts.length === 0 && <Text style={s.empty}>No alerts</Text>}
-      </View>
-      <View style={{ height: 28 }} />
-    </ScrollView>
+          ))}
+          {evacCenters.length === 0 && <Text style={s.empty}>No centers</Text>}
+        </View>
+
+        <View style={s.card}>
+          <SecHdr title={'Recent Alerts'} count={alerts.length} />
+          {alerts.slice(0,6).map(a => (
+            <View key={String(a.id)} style={s.arow}>
+              <View style={s.ameta1}>
+                <Badge label={a.level} variant={a.level} />
+                <Text style={s.azone}>{a.zone}</Text>
+              </View>
+              <Text style={s.amsg} numberOfLines={1}>{a.message}</Text>
+              <Text style={s.aby}>{a.sent_by}  ·  {a.created_at ? new Date(a.created_at).toLocaleDateString() : ''}</Text>
+            </View>
+          ))}
+          {alerts.length === 0 && <Text style={s.empty}>No alerts</Text>}
+        </View>
+        <View style={{ height: 28 }} />
+      </ScrollView>
+
+      {/* SIDEBAR */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentRoute="Reports"
+        onNavigate={(screenName) => {
+          navigation.navigate(screenName);
+          setSidebarOpen(false);
+        }}
+        onLogout={() => {
+          setSidebarOpen(false);
+          logout();
+        }}
+        userName="User"
+      />
+    </View>
   );
 }
 
 const s = StyleSheet.create({
+  headerContainer: {
+    backgroundColor: C.card,
+    borderBottomColor: C.border,
+    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  hamburger: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  hamburgerText: {
+    fontSize: 24,
+    color: C.t1,
+  },
+  headerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.t1,
+    flex: 1,
+    textAlign: 'center',
+  },
   screen: { flex:1, backgroundColor: C.bg },
   pad:    { padding:14 },
   title:  { fontSize:22, fontWeight:'800', color:C.t1 },

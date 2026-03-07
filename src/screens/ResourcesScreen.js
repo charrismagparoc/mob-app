@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
-import { useApp } from '../context/AppContext';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { C } from '../styles/colors';
-import { Badge, Search, Chips, Bar, Confirm, FormModal, FInput, FPick, Empty } from '../components/Shared';
+
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Badge, Bar, Chips, Confirm, Empty, FInput, FormModal, FPick, Search } from '../components/Shared';
+import { Sidebar } from '../components/Sidebar';
+import { useApp } from '../context/AppContext';
 import { RES_CATS } from '../data/constants';
+import { C } from '../styles/colors';
 
 const CEMOJI = { Equipment:'🔧', Medical:'💊', 'Food Supply':'🍱', Vehicle:'🚗', 'Safety Gear':'🦺' };
 const EF     = { name:'', category:'Equipment', quantity:'1', available:'1', unit:'pcs', location:'', status:'Available', notes:'' };
 
-export default function ResourcesScreen() {
+export default function ResourcesScreen({ navigation }) {
   const { resources, addResource, updateResource, deleteResource, reload } = useApp();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [q, setQ]     = useState('');
   const [fil, setFil] = useState('All');
   const [form, setForm] = useState({ ...EF });
@@ -20,6 +22,7 @@ export default function ResourcesScreen() {
   const [delId, setDelId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const list = resources.filter(r => {
     const mq = !q || (r.name + r.category + r.location).toLowerCase().includes(q.toLowerCase());
@@ -46,6 +49,15 @@ export default function ResourcesScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      {/* HEADER */}
+      <View style={s.headerContainer}>
+        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={s.hamburger}>
+          <Text style={s.hamburgerText}>☰</Text>
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Resources</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <View style={s.bar}>
         <Search value={q} onChange={setQ} placeholder="Search resources..." />
         <TouchableOpacity style={s.add} onPress={openAdd}><Text style={s.addTxt}>+ Add</Text></TouchableOpacity>
@@ -92,11 +104,52 @@ export default function ResourcesScreen() {
         <FInput label="Notes" value={form.notes || ''} onChange={v => set('notes', v)} multi />
       </FormModal>
       <Confirm visible={!!delId} title="Delete Resource" msg="Remove this resource?" onOk={async () => { const r = resources.find(x => x.id === delId); await deleteResource(delId, r && r.name, user.name); setDelId(null); }} onNo={() => setDelId(null)} />
+      
+      {/* SIDEBAR */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentRoute="Resources"
+        onNavigate={(screenName) => {
+          navigation.navigate(screenName);
+          setSidebarOpen(false);
+        }}
+        onLogout={() => {
+          setSidebarOpen(false);
+          logout();
+        }}
+        userName="User"
+      />
     </View>
   );
 }
 
 const s = StyleSheet.create({
+  headerContainer: {
+    backgroundColor: C.card,
+    borderBottomColor: C.border,
+    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  hamburger: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  hamburgerText: {
+    fontSize: 24,
+    color: C.t1,
+  },
+  headerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.t1,
+    flex: 1,
+    textAlign: 'center',
+  },
   bar:      { flexDirection: 'row', gap: 10, padding: 12, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   add:      { backgroundColor: C.orange, borderRadius: 10, paddingHorizontal: 15, justifyContent: 'center', height: 42 },
   addTxt:   { color: '#fff', fontWeight: '700', fontSize: 14 },

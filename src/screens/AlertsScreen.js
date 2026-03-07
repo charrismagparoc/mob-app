@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Badge, Confirm, Empty, FInput, FormModal, FPick, Search, SecHdr } from '../components/Shared';
+import { Sidebar } from '../components/Sidebar';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { C } from '../styles/colors';
-import { Badge, Search, Confirm, FormModal, FInput, FPick, SecHdr, Empty } from '../components/Shared';
 import { ALT_LEVELS, ZONES } from '../data/constants';
+import { C } from '../styles/colors';
 
 const LEMOJI = { Danger:'🚨', Warning:'⚡', Advisory:'📢', Resolved:'✅' };
 const LCOLOR = { Danger: C.red, Warning: C.orange, Advisory: C.blue, Resolved: C.green };
@@ -17,15 +18,16 @@ const QUICK = [
 ];
 const EF = { level:'Advisory', zone:'All Zones', message:'' };
 
-export default function AlertsScreen() {
+export default function AlertsScreen({ navigation }) {
   const { alerts, addAlert, deleteAlert, reload } = useApp();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [q, setQ]     = useState('');
   const [form, setForm] = useState({ ...EF });
   const [show, setShow] = useState(false);
   const [delId, setDelId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const list = alerts.filter(a => !q || (a.message + a.zone + a.level).toLowerCase().includes(q.toLowerCase()));
 
@@ -44,6 +46,14 @@ export default function AlertsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <View style={s.headerContainer}>
+        <TouchableOpacity onPress={() => setSidebarOpen(true)} style={s.hamburger}>
+          <Text style={s.hamburgerText}>☰</Text>
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Alerts</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <View style={s.bar}>
         <Search value={q} onChange={setQ} placeholder="Search alerts..." />
         <TouchableOpacity style={s.add} onPress={() => { setForm({ ...EF }); setShow(true); }}><Text style={s.addTxt}>+ Send</Text></TouchableOpacity>
@@ -86,11 +96,30 @@ export default function AlertsScreen() {
         <FInput label="Message *" value={form.message} onChange={v => set('message', v)} placeholder="Enter alert message..." multi req />
       </FormModal>
       <Confirm visible={!!delId} title="Delete Alert" msg="Remove from alert history?" onOk={async () => { await deleteAlert(delId, user.name); setDelId(null); }} onNo={() => setDelId(null)} />
+      
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentRoute="Alerts"
+        onNavigate={(screenName) => {
+          navigation.navigate(screenName);
+          setSidebarOpen(false);
+        }}
+        onLogout={() => {
+          setSidebarOpen(false);
+          logout();
+        }}
+        userName="User"
+      />
     </View>
   );
 }
 
 const s = StyleSheet.create({
+  headerContainer: { backgroundColor: C.card, borderBottomColor: C.border, borderBottomWidth: 1, paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  hamburger: { padding: 8, marginLeft: -8 },
+  hamburgerText: { fontSize: 24, color: C.t1 },
+  headerTitle: { fontSize: 15, fontWeight: '700', color: C.t1, flex: 1, textAlign: 'center' },
   bar:    { flexDirection: 'row', gap: 10, padding: 12, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   add:    { backgroundColor: C.red, borderRadius: 10, paddingHorizontal: 15, justifyContent: 'center', height: 42 },
   addTxt: { color: '#fff', fontWeight: '700', fontSize: 14 },
