@@ -1,10 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Bar, SecHdr } from '../components/Shared';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
-import { useAuth } from '../context/AuthContext';
 import { useRisk } from '../hooks/useRisk';
 import { useWeather } from '../hooks/useWeather';
 import { C, TYPE_COLOR } from '../styles/colors';
@@ -18,6 +17,7 @@ function KPI({ value, label, color, iconName }) {
     </View>
   );
 }
+
 const k = StyleSheet.create({
   card: { flex: 1, backgroundColor: C.card, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 6, alignItems: 'center', borderWidth: 1, minWidth: 68 },
   val:  { fontSize: 18, fontWeight: '800', lineHeight: 22 },
@@ -26,9 +26,9 @@ const k = StyleSheet.create({
 
 const RISK_C = { High: C.red, Medium: C.orange, Low: C.green };
 
-export default function DashboardScreen({ navigation }) {
+export default function DashboardScreen() {
+  const insets = useSafeAreaInsets();
   const { incidents, alerts, evacCenters, residents, activityLog, reload } = useApp();
-  const { logout } = useAuth();
   const w = useWeather();
   const { zoneRisks, highCount, medCount, lowCount, overallScore } = useRisk(residents, incidents, w);
   const [busy, setBusy] = useState(false);
@@ -42,12 +42,13 @@ export default function DashboardScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScreenHeader
-        title="Dashboard"
-        currentRoute="Dashboard"
-        onNavigate={n => navigation.navigate(n)}
-        onLogout={logout}
-      />
+      {/* Top Bar with Title and Logout */}
+      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={s.logoRow}>
+          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Text style={s.title}>Dashboard</Text>
+        </View>
+      </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.pad}
         refreshControl={<RefreshControl refreshing={busy} onRefresh={onRefresh} tintColor={C.blue} />}>
@@ -93,7 +94,7 @@ export default function DashboardScreen({ navigation }) {
         {/* Active Incidents table */}
         <View style={s.section}>
           <SecHdr title="Active Incidents" count={activeInc.length} right="View All"
-            onRight={() => navigation.navigate('Incidents')} />
+            onRight={() => {}} />
           {activeInc.length === 0
             ? <Text style={s.empty}>All clear — no active incidents</Text>
             : (
@@ -121,7 +122,7 @@ export default function DashboardScreen({ navigation }) {
 
         {/* Zone Risk table */}
         <View style={s.section}>
-          <SecHdr title="Zone Risk Levels" right="Details" onRight={() => navigation.navigate('Risk')} />
+          <SecHdr title="Zone Risk Levels" right="Details" onRight={() => {}} />
           <View style={s.tableWrap}>
             <View style={s.thead}>
               <Text style={[s.th, { width: 54 }]}>ZONE</Text>
@@ -145,7 +146,7 @@ export default function DashboardScreen({ navigation }) {
 
         {/* Recent Activity */}
         <View style={s.section}>
-          <SecHdr title="Recent Activity" right="View All" onRight={() => navigation.navigate('ActivityLog')} />
+          <SecHdr title="Recent Activity" right="View All" onRight={() => {}} />
           <View style={s.tableWrap}>
             <View style={s.thead}>
               <Text style={[s.th, { flex: 3 }]}>ACTION</Text>
@@ -172,6 +173,9 @@ export default function DashboardScreen({ navigation }) {
 
 const s = StyleSheet.create({
   pad:        { padding: 12 },
+  topBar:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:    { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:      { fontSize: 15, fontWeight: '700', color: C.t1 },
   topRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   appName:    { fontSize: 20, fontWeight: '800', color: C.t1 },
   appSub:     { fontSize: 10, color: C.t3, marginTop: 2, fontWeight: '600' },

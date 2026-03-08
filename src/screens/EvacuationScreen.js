@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Bar, Confirm, DeleteBtn, DropFilter, EditBtn, Empty, FInput, FormModal, FPick, FTags, Search } from '../components/Shared';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { EVAC_STAT, FACILITIES, ZONES } from '../data/constants';
@@ -10,9 +10,10 @@ import { C } from '../styles/colors';
 
 const EF = { name: '', address: '', zone: 'Zone 1', status: 'Open', capacity: '100', occupancy: '0', contactPerson: '', contact: '', facilitiesAvailable: [] };
 
-export default function EvacuationScreen({ navigation }) {
+export default function EvacuationScreen() {
+  const insets = useSafeAreaInsets();
   const { evacCenters, addEvac, updateEvac, deleteEvac, reload } = useApp();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [q, setQ]       = useState('');
   const [fil, setFil]   = useState('All');
   const [form, setForm] = useState({ ...EF });
@@ -50,12 +51,13 @@ export default function EvacuationScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScreenHeader
-        title="Evacuation"
-        currentRoute="Evacuation"
-        onNavigate={n => navigation.navigate(n)}
-        onLogout={logout}
-      />
+      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={s.logoRow}>
+          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Text style={s.title}>Evacuation</Text>
+        </View>
+      </View>
+
 
       <View style={s.bar}>
         <Search value={q} onChange={setQ} placeholder="Search centers..." />
@@ -157,4 +159,8 @@ const s = StyleSheet.create({
   zebra:     { backgroundColor: 'rgba(255,255,255,0.02)' },
   tdBold:    { fontSize: 12, fontWeight: '600', color: C.t1 },
   tdSub:     { fontSize: 10, color: C.t3, marginTop: 2 },
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
+
 });

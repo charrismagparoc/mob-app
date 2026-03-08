@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Bar, SecHdr } from '../components/Shared';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { TYPES } from '../data/constants';
@@ -25,9 +24,10 @@ const k = StyleSheet.create({
   lbl:  { fontSize: 8, color: C.t3, textAlign: 'center', marginTop: 2, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
 });
 
-export default function ReportsScreen({ navigation }) {
+export default function ReportsScreen() {
+  const insets = useSafeAreaInsets();
   const { incidents, alerts, evacCenters, residents } = useApp();
-  const { logout } = useAuth();
+  const { user } = useAuth();
   const w = useWeather();
   const { zoneRisks } = useRisk(residents, incidents, w);
 
@@ -38,12 +38,13 @@ export default function ReportsScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScreenHeader
-        title="Reports"
-        currentRoute="Reports"
-        onNavigate={n => navigation.navigate(n)}
-        onLogout={logout}
-      />
+      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={s.logoRow}>
+          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Text style={s.title}>Reports</Text>
+        </View>
+      </View>
+
 
       <ScrollView contentContainerStyle={s.pad}>
         <Text style={s.pageTitle}>Reports & Analytics</Text>
@@ -180,4 +181,7 @@ const s = StyleSheet.create({
   tdSub:     { fontSize: 10, color: C.t3, marginTop: 1 },
   dot:       { width: 7, height: 7, borderRadius: 4, flexShrink: 0 },
   empty:     { fontSize: 12, color: C.t3, textAlign: 'center', paddingVertical: 10 },
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
 });

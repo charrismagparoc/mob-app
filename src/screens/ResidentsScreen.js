@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Confirm, DeleteBtn, DropFilter, EditBtn, Empty, FInput, FormModal, FPick, FTags, Search } from '../components/Shared';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { RES_STAT, VULN_TAGS, ZONES } from '../data/constants';
@@ -10,9 +10,10 @@ import { C } from '../styles/colors';
 
 const EF = { name: '', zone: 'Zone 1', address: '', householdMembers: '1', contact: '', evacuationStatus: 'Safe', vulnerabilityTags: [], notes: '' };
 
-export default function ResidentsScreen({ navigation }) {
+export default function ResidentsScreen() {
+  const insets = useSafeAreaInsets();
   const { residents, addResident, updateResident, deleteResident, reload } = useApp();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [q, setQ]       = useState('');
   const [fz, setFz]     = useState('All');
   const [fe, setFe]     = useState('All');
@@ -49,12 +50,12 @@ export default function ResidentsScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScreenHeader
-        title="Residents"
-        currentRoute="Residents"
-        onNavigate={n => navigation.navigate(n)}
-        onLogout={logout}
-      />
+      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={s.logoRow}>
+          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Text style={s.title}>Residents</Text>
+        </View>
+      </View>
 
       <View style={s.bar}>
         <Search value={q} onChange={setQ} placeholder="Search residents..." />
@@ -136,4 +137,7 @@ const s = StyleSheet.create({
   tdBold:    { fontSize: 12, fontWeight: '600', color: C.t1 },
   tdSub:     { fontSize: 10, color: C.t3, marginTop: 1 },
   tdTags:    { fontSize: 9, color: C.purple, marginTop: 2 },
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
 });

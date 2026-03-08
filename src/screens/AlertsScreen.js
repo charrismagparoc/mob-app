@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Confirm, DeleteBtn, DropFilter, Empty, FInput, FormModal, FPick, Search, SecHdr } from '../components/Shared';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { ALT_LEVELS, ZONES } from '../data/constants';
@@ -18,9 +18,10 @@ const QUICK = [
   { label: 'All Clear',      level: 'Resolved', zone: 'All Zones', icon: 'checkmark-circle',msg: 'ALL CLEAR: Emergency resolved. Residents may return to normal activities.'    },
 ];
 
-export default function AlertsScreen({ navigation }) {
+export default function AlertsScreen() {
+  const insets = useSafeAreaInsets();
   const { alerts, addAlert, deleteAlert, reload } = useApp();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [q, setQ]           = useState('');
   const [filLevel, setFilLevel] = useState('All');
   const [form, setForm]     = useState({ ...EF });
@@ -48,12 +49,13 @@ export default function AlertsScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScreenHeader
-        title="Alerts"
-        currentRoute="Alerts"
-        onNavigate={n => navigation.navigate(n)}
-        onLogout={logout}
-      />
+      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={s.logoRow}>
+          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Text style={s.title}>Alerts</Text>
+        </View>
+      </View>
+
 
       <View style={s.bar}>
         <Search value={q} onChange={setQ} placeholder="Search alerts..." />
@@ -141,4 +143,9 @@ const s = StyleSheet.create({
   td:        { fontSize: 12, color: C.t1 },
   qlbl:      { fontSize: 13, fontWeight: '700', color: C.t1 },
   qsub:      { fontSize: 10, color: C.t3, marginTop: 2 },
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
+
 });
+

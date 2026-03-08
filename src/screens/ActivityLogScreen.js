@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DropFilter, Empty, Search, SecHdr } from '../components/Shared';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { C } from '../styles/colors';
@@ -18,9 +18,10 @@ const TYPE_ICON = {
   System:     { icon: 'settings',        color: C.t2     },
 };
 
-export default function ActivityLogScreen({ navigation }) {
+export default function ActivityLogScreen() {
+  const insets = useSafeAreaInsets();
   const { activityLog, reload } = useApp();
-  const { logout } = useAuth();
+  const { user } = useAuth();
   const [q, setQ]                 = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [busy, setBusy]           = useState(false);
@@ -37,12 +38,12 @@ export default function ActivityLogScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScreenHeader
-        title="Activity Log"
-        currentRoute="ActivityLog"
-        onNavigate={n => navigation.navigate(n)}
-        onLogout={logout}
-      />
+      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={s.logoRow}>
+          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Text style={s.title}>Activity Log Screen</Text>
+        </View>
+      </View>
 
       <View style={s.bar}>
         <Search value={q} onChange={setQ} placeholder="Search action, user..." />
@@ -114,4 +115,8 @@ const s = StyleSheet.create({
   tdSub:      { fontSize: 10, color: C.t3 },
   typeBadge:  { paddingHorizontal: 6, paddingVertical: 3, borderRadius: 4 },
   typeTxt:    { fontSize: 9, fontWeight: '700' },
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
+
 });

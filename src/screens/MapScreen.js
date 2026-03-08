@@ -1,16 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { ZONE_SUBDIVISIONS } from '../data/constants';
 import { C } from '../styles/colors';
 
-export default function MapScreen({ navigation }) {
+export default function MapScreen() {
+  const insets = useSafeAreaInsets();
   const { evacCenters, incidents, residents } = useApp();
-  const { logout } = useAuth();
+  const { user } = useAuth();
   const webViewRef   = useRef(null);
   const [filter, setFilter]       = useState('all');
   const [showRings, setShowRings] = useState(true);
@@ -83,14 +84,20 @@ export default function MapScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScreenHeader
-        title="GIS Map"
-        currentRoute="Map"
-        onNavigate={n => navigation.navigate(n)}
-        onLogout={logout}
-      />
+      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={s.logoRow}>
+          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Text style={s.title}>GIS Map</Text>
+        </View>
+      </View>
       <WebView ref={webViewRef} source={{ html: mapHTML }} style={{ flex: 1 }}
         onMessage={handleMsg} originWhitelist={['*']} />
-      </View>
+    </View>
   );
 }
+
+const s = StyleSheet.create({
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
+});
