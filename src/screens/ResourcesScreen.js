@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Bar, Confirm, DeleteBtn, DropFilter, EditBtn, Empty, FInput, FormModal, FPick, Search } from '../components/Shared';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { RES_CATS } from '../data/constants';
@@ -10,9 +10,10 @@ import { C } from '../styles/colors';
 
 const EF = { name: '', category: 'Equipment', quantity: '1', available: '1', unit: 'pcs', location: '', status: 'Available', notes: '' };
 
-export default function ResourcesScreen({ navigation }) {
+export default function ResourcesScreen() {
+  const insets = useSafeAreaInsets();
   const { resources, addResource, updateResource, deleteResource, reload } = useApp();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [q, setQ]       = useState('');
   const [fil, setFil]   = useState('All');
   const [form, setForm] = useState({ ...EF });
@@ -47,13 +48,12 @@ export default function ResourcesScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScreenHeader
-        title="Resources"
-        currentRoute="Resources"
-        onNavigate={n => navigation.navigate(n)}
-        onLogout={logout}
-      />
-
+      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={s.logoRow}>
+          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Text style={s.title}>Resources</Text>
+        </View>
+      </View>
       <View style={s.bar}>
         <Search value={q} onChange={setQ} placeholder="Search resources..." />
         <TouchableOpacity style={[s.addBtn, { backgroundColor: C.orange }]} onPress={openAdd} activeOpacity={0.8}>
@@ -135,4 +135,8 @@ const s = StyleSheet.create({
   zebra:     { backgroundColor: 'rgba(255,255,255,0.02)' },
   tdBold:    { fontSize: 12, fontWeight: '600', color: C.t1 },
   tdSub:     { fontSize: 10, color: C.t3, marginTop: 2 },
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
+
 });

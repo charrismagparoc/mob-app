@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Bar, DropFilter, Empty, Search } from '../components/Shared';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { SCORING_RULES, ZONES } from '../data/constants';
@@ -10,9 +10,10 @@ import { useRisk } from '../hooks/useRisk';
 import { useWeather } from '../hooks/useWeather';
 import { C } from '../styles/colors';
 
-export default function RiskScreen({ navigation }) {
+export default function RiskScreen() {
+  const insets = useSafeAreaInsets();
   const { incidents, residents } = useApp();
-  const { logout } = useAuth();
+  const { user } = useAuth();
   const w = useWeather();
   const { resRisks, zoneRisks, highCount, medCount, lowCount, overallScore } = useRisk(residents, incidents, w);
   const [tab, setTab]     = useState('Zones');
@@ -32,12 +33,12 @@ export default function RiskScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScreenHeader
-        title="Risk Assessment"
-        currentRoute="Risk"
-        onNavigate={n => navigation.navigate(n)}
-        onLogout={logout}
-      />
+      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={s.logoRow}>
+          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Text style={s.title}>Risk Assessment</Text>
+        </View>
+      </View>
 
       {/* KPI row */}
       <View style={s.kpiRow}>
@@ -181,11 +182,14 @@ export default function RiskScreen({ navigation }) {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-      </View>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
   kpiRow:    { flexDirection: 'row', gap: 7, padding: 11, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   oCard:     { flex: 2, borderRadius: 10, padding: 11, alignItems: 'center', borderWidth: 1 },
   oLbl:      { fontSize: 8, color: C.t3, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
@@ -216,6 +220,7 @@ const s = StyleSheet.create({
   tdCenter:  { fontSize: 12, color: C.t1, textAlign: 'center', fontWeight: '600' },
   scoreVal:  { fontSize: 10, fontWeight: '700', marginTop: 3 },
 });
+
 const sm = StyleSheet.create({
   ov:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', justifyContent: 'flex-end' },
   sheet:    { backgroundColor: C.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingHorizontal: 18, paddingTop: 12, maxHeight: '88%' },

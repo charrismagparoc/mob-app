@@ -1,17 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Confirm, DeleteBtn, EditBtn, Empty, FInput, FormModal, FPick, Search } from '../components/Shared';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { C } from '../styles/colors';
 
 const EF = { name: '', role: 'Staff', email: '', status: 'Active', password: '' };
 
-export default function UsersScreen({ navigation }) {
+export default function UsersScreen() {
+  const insets = useSafeAreaInsets();
   const { users, addUser, updateUser, deleteUser, reload } = useApp();
-  const { logout } = useAuth();
+  const { user } = useAuth();
   const [q, setQ]       = useState('');
   const [form, setForm] = useState({ ...EF });
   const [edit, setEdit] = useState(null);
@@ -49,12 +50,12 @@ export default function UsersScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScreenHeader
-        title="Users"
-        currentRoute="Users"
-        onNavigate={n => navigation.navigate(n)}
-        onLogout={logout}
-      />
+      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={s.logoRow}>
+          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Text style={s.title}>Users</Text>
+        </View>
+      </View>
 
       <View style={s.bar}>
         <Search value={q} onChange={setQ} placeholder="Search users..." />
@@ -129,4 +130,7 @@ const s = StyleSheet.create({
   tdSub:     { fontSize: 10, color: C.t3, marginTop: 1 },
   errBox:    { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.red + '18', borderRadius: 8, padding: 10, marginTop: 8, borderWidth: 1, borderColor: C.red + '44' },
   errTxt:    { color: C.red, fontSize: 12, fontWeight: '600' },
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
 });

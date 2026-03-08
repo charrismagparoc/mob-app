@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge, Confirm, DeleteBtn, DropFilter, EditBtn, Empty, FInput, FormModal, FPick, Search } from '../components/Shared';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { INC_STATUS, SEVERITIES, TYPES, ZONES } from '../data/constants';
@@ -10,9 +10,10 @@ import { C, TYPE_COLOR } from '../styles/colors';
 
 const EMPTY = { type: 'Flood', zone: 'Zone 1', location: '', severity: 'Medium', status: 'Pending', description: '', reporter: '' };
 
-export default function IncidentsScreen({ navigation }) {
+export default function IncidentsScreen() {
+  const insets = useSafeAreaInsets();
   const { incidents, addIncident, updateIncident, deleteIncident, reload } = useApp();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [q, setQ]           = useState('');
   const [filStatus, setFilStatus]     = useState('All');
   const [filSeverity, setFilSeverity] = useState('All');
@@ -49,12 +50,12 @@ export default function IncidentsScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScreenHeader
-        title="Incidents"
-        currentRoute="Incidents"
-        onNavigate={n => navigation.navigate(n)}
-        onLogout={logout}
-      />
+      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+        <View style={s.logoRow}>
+          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Text style={s.title}>Incidents</Text>
+        </View>
+      </View>
 
       {/* Search + Add */}
       <View style={s.bar}>
@@ -141,4 +142,8 @@ const s = StyleSheet.create({
   tdBold:    { fontSize: 12, fontWeight: '600', color: C.t1 },
   tdSub:     { fontSize: 10, color: C.t3, marginTop: 1 },
   dot:       { width: 7, height: 7, borderRadius: 4, flexShrink: 0 },
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
+
 });
