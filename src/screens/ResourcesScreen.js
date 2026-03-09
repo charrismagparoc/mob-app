@@ -76,15 +76,11 @@ export default function ResourcesScreen() {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
 
       {/* HEADER */}
-      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+      <View style={[s.topBar, { paddingTop: insets.top + 14 }]}>
         <View style={s.logoRow}>
-          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Ionicons name="shield-checkmark" size={20} color={C.blue} />
           <Text style={s.title}>Resources</Text>
         </View>
-        <TouchableOpacity style={s.logoutBtn} onPress={logout} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Ionicons name="log-out-outline" size={18} color={C.red} />
-          <Text style={s.logoutTxt}>Sign Out</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={s.bar}>
@@ -192,9 +188,9 @@ export default function ResourcesScreen() {
 }
 
 const s = StyleSheet.create({
-  topBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  topBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 16, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   logoRow:       { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  title:         { fontSize: 15, fontWeight: '700', color: C.t1 },
+  title:         { fontSize: 17, fontWeight: '800', color: C.t1 },
   logoutBtn:     { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(232,72,85,0.12)', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 7, borderWidth: 1, borderColor: C.red + '44' },
   logoutTxt:     { color: C.red, fontSize: 11, fontWeight: '700' },
   bar:           { flexDirection: 'row', gap: 10, padding: 12, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },

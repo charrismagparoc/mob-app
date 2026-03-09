@@ -38,9 +38,9 @@ export default function ReportsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+      <View style={[s.topBar, { paddingTop: insets.top + 14 }]}>
         <View style={s.logoRow}>
-          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Ionicons name="shield-checkmark" size={20} color={C.blue} />
           <Text style={s.title}>Reports</Text>
         </View>
       </View>
@@ -181,7 +181,7 @@ const s = StyleSheet.create({
   tdSub:     { fontSize: 10, color: C.t3, marginTop: 1 },
   dot:       { width: 7, height: 7, borderRadius: 4, flexShrink: 0 },
   empty:     { fontSize: 12, color: C.t3, textAlign: 'center', paddingVertical: 10 },
-  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 16, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
+  title:     { fontSize: 17, fontWeight: '800', color: C.t1 },
 });

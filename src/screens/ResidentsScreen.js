@@ -1,14 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import {
-  RefreshControl, ScrollView, StyleSheet, Text,
-  TouchableOpacity, View, TextInput, Modal,
-  TouchableWithoutFeedback, KeyboardAvoidingView,
-  Platform, StatusBar
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  RefreshControl, ScrollView,
+  StatusBar,
+  StyleSheet, Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { RES_STAT, VULN_TAGS, ZONES } from '../data/constants';
 import { C } from '../styles/colors';
 
@@ -414,7 +420,7 @@ export default function ResidentsScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  header:        { backgroundColor: '#0d1424', borderBottomWidth: 1, borderBottomColor: '#1e293b', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  header:        { backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
   hamburger:     { padding: 6 },
   hamburgerText: { fontSize: 24, color: '#94a3b8' },
   headerTitle:   { fontSize: 16, fontWeight: '800', color: '#f1f5f9', letterSpacing: -0.3, flexShrink: 1 },
