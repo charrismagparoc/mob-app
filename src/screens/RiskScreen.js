@@ -33,9 +33,9 @@ export default function RiskScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+      <View style={[s.topBar, { paddingTop: insets.top + 14 }]}>
         <View style={s.logoRow}>
-          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Ionicons name="shield-checkmark" size={20} color={C.blue} />
           <Text style={s.title}>Risk Assessment</Text>
         </View>
       </View>
@@ -187,9 +187,9 @@ export default function RiskScreen() {
 }
 
 const s = StyleSheet.create({
-  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 16, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
+  title:     { fontSize: 17, fontWeight: '800', color: C.t1 },
   kpiRow:    { flexDirection: 'row', gap: 7, padding: 11, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   oCard:     { flex: 2, borderRadius: 10, padding: 11, alignItems: 'center', borderWidth: 1 },
   oLbl:      { fontSize: 8, color: C.t3, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },

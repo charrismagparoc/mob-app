@@ -38,10 +38,10 @@ export default function ActivityLogScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+      <View style={[s.topBar, { paddingTop: insets.top + 14 }]}>
         <View style={s.logoRow}>
-          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
-          <Text style={s.title}>Activity Log Screen</Text>
+          <Ionicons name="shield-checkmark" size={20} color={C.blue} />
+          <Text style={s.title}>Activity Log</Text>
         </View>
       </View>
 
@@ -115,8 +115,8 @@ const s = StyleSheet.create({
   tdSub:      { fontSize: 10, color: C.t3 },
   typeBadge:  { paddingHorizontal: 6, paddingVertical: 3, borderRadius: 4 },
   typeTxt:    { fontSize: 9, fontWeight: '700' },
-  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 14, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  title:     { fontSize: 15, fontWeight: '700', color: C.t1 },
+  title:     { fontSize: 17, fontWeight: '800', color: C.t1 },
 
 });

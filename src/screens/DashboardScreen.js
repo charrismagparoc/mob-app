@@ -43,9 +43,9 @@ export default function DashboardScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       {/* Top Bar with Title and Logout */}
-      <View style={[s.topBar, { paddingTop: insets.top + 8 }]}>
+      <View style={[s.topBar, { paddingTop: insets.top + 13 }]}>
         <View style={s.logoRow}>
-          <Ionicons name="shield-checkmark" size={18} color={C.blue} />
+          <Ionicons name="shield-checkmark" size={20} color={C.blue} />
           <Text style={s.title}>Dashboard</Text>
         </View>
       </View>
@@ -173,9 +173,9 @@ export default function DashboardScreen() {
 
 const s = StyleSheet.create({
   pad:        { padding: 12 },
-  topBar:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  topBar:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 16, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   logoRow:    { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  title:      { fontSize: 15, fontWeight: '700', color: C.t1 },
+  title:      { fontSize: 17, fontWeight: '800', color: C.t1 },
   topRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   appName:    { fontSize: 20, fontWeight: '800', color: C.t1 },
   appSub:     { fontSize: 10, color: C.t3, marginTop: 2, fontWeight: '600' },
