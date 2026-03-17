@@ -15,20 +15,21 @@ export default function RiskScreen() {
   const { incidents, residents } = useApp();
   const { user } = useAuth();
   const w = useWeather();
-  const { resRisks, zoneRisks, highCount, medCount, lowCount, overallScore } = useRisk(residents, incidents, w);
+  const { resRisks, zoneRisks } = useRisk(residents, incidents, w);
   const [tab, setTab]     = useState('Zones');
   const [q, setQ]         = useState('');
   const [fRisk, setFRisk] = useState('All');
   const [fZone, setFZone] = useState('All');
   const [showS, setShowS] = useState(false);
 
-  const oc = overallScore >= 70 ? C.red : overallScore >= 40 ? C.orange : C.green;
-  const ol = overallScore >= 70 ? 'HIGH' : overallScore >= 40 ? 'MED' : 'LOW';
-
   const filtRes = resRisks.filter(r =>
     (!q || (r.name + r.zone).toLowerCase().includes(q.toLowerCase())) &&
     (fRisk === 'All' || r.riskLabel === fRisk) &&
     (fZone === 'All' || r.zone === fZone)
+  );
+
+  const filtZones = zoneRisks.filter(z =>
+    (fRisk === 'All' || z.riskLabel === fRisk)
   );
 
   return (
@@ -40,27 +41,9 @@ export default function RiskScreen() {
         </View>
       </View>
 
-      {/* KPI row */}
-      <View style={s.kpiRow}>
-        <View style={[s.oCard, { borderColor: oc + '55', backgroundColor: oc + '11' }]}>
-          <Text style={s.oLbl}>Overall</Text>
-          <Text style={[s.oScore, { color: oc }]}>{overallScore}</Text>
-          <View style={[s.pill, { backgroundColor: oc + '22' }]}>
-            <Text style={[s.pillTxt, { color: oc }]}>{ol}</Text>
-          </View>
-        </View>
-        {[[highCount,'HIGH',C.red,'flame'],[medCount,'MED',C.orange,'warning'],[lowCount,'LOW',C.green,'checkmark-circle']].map(([v,l,c,ico]) => (
-          <View key={l} style={[s.mini, { borderColor: c + '33' }]}>
-            <Ionicons name={ico} size={15} color={c} style={{ marginBottom: 3 }} />
-            <Text style={[s.miniV, { color: c }]}>{v}</Text>
-            <Text style={s.miniL}>{l}</Text>
-          </View>
-        ))}
-      </View>
-
       {/* Tab bar */}
       <View style={s.tabBar}>
-        {['Zones','Residents'].map(t => (
+        {['Zones', 'Residents'].map(t => (
           <TouchableOpacity key={t} style={[s.tab, tab === t && s.tabA]} onPress={() => setTab(t)}>
             <Text style={[s.tabTxt, tab === t && s.tabTxtA]}>{t}</Text>
           </TouchableOpacity>
@@ -72,40 +55,47 @@ export default function RiskScreen() {
       </View>
 
       {tab === 'Zones' ? (
-        <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-          <View style={s.tableWrap}>
-            <View style={s.thead}>
-              <Text style={[s.th, { width: 64 }]}>ZONE</Text>
-              <Text style={[s.th, { flex: 1, paddingHorizontal: 8 }]}>SCORE</Text>
-              <Text style={[s.th, { width: 64 }]}>LEVEL</Text>
-              <Text style={[s.th, { width: 36, textAlign: 'center' }]}>RES</Text>
-              <Text style={[s.th, { width: 36, textAlign: 'center' }]}>VULN</Text>
-              <Text style={[s.th, { width: 36, textAlign: 'center' }]}>INC</Text>
-            </View>
-            {zoneRisks.map((z, idx) => (
-              <View key={z.zone} style={[s.trow, idx % 2 === 1 && s.zebra]}>
-                <View style={{ width: 64 }}>
-                  <Text style={s.tdBold}>{z.zone}</Text>
-                  <Text style={s.tdSub}>{z.mainHazard}</Text>
-                </View>
-                <View style={{ flex: 1, paddingHorizontal: 8 }}>
-                  <Bar value={z.score} max={100} height={6} color={z.riskColor} />
-                  <Text style={[s.scoreVal, { color: z.riskColor }]}>{z.score}</Text>
-                </View>
-                <View style={{ width: 64 }}><Badge label={z.riskLabel} variant={z.riskLabel} /></View>
-                <Text style={[s.tdCenter, { width: 36 }]}>{z.totalResidents}</Text>
-                <Text style={[s.tdCenter, { width: 36 }]}>{z.vulnerable}</Text>
-                <Text style={[s.tdCenter, { width: 36, color: z.activeInc > 0 ? C.red : C.t3 }]}>{z.activeInc}</Text>
-              </View>
-            ))}
+        <View style={{ flex: 1 }}>
+          <View style={s.filterRow}>
+            <DropFilter label="Risk" value={fRisk} opts={['All', 'HIGH', 'MEDIUM', 'LOW']} onSelect={setFRisk} color={C.red} />
           </View>
-        </ScrollView>
+          <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+            <Text style={s.count}>{filtZones.length} zone{filtZones.length !== 1 ? 's' : ''}</Text>
+            <View style={s.tableWrap}>
+              <View style={s.thead}>
+                <Text style={[s.th, { width: 64 }]}>ZONE</Text>
+                <Text style={[s.th, { flex: 1, paddingHorizontal: 8 }]}>SCORE</Text>
+                <Text style={[s.th, { width: 64 }]}>LEVEL</Text>
+                <Text style={[s.th, { width: 36, textAlign: 'center' }]}>RES</Text>
+                <Text style={[s.th, { width: 36, textAlign: 'center' }]}>VULN</Text>
+                <Text style={[s.th, { width: 36, textAlign: 'center' }]}>INC</Text>
+              </View>
+              {filtZones.map((z, idx) => (
+                <View key={z.zone} style={[s.trow, idx % 2 === 1 && s.zebra]}>
+                  <View style={{ width: 64 }}>
+                    <Text style={s.tdBold}>{z.zone}</Text>
+                    <Text style={s.tdSub}>{z.mainHazard}</Text>
+                  </View>
+                  <View style={{ flex: 1, paddingHorizontal: 8 }}>
+                    <Bar value={z.score} max={100} height={6} color={z.riskColor} />
+                    <Text style={[s.scoreVal, { color: z.riskColor }]}>{z.score}</Text>
+                  </View>
+                  <View style={{ width: 64 }}><Badge label={z.riskLabel} variant={z.riskLabel} /></View>
+                  <Text style={[s.tdCenter, { width: 36 }]}>{z.totalResidents}</Text>
+                  <Text style={[s.tdCenter, { width: 36 }]}>{z.vulnerable}</Text>
+                  <Text style={[s.tdCenter, { width: 36, color: z.activeInc > 0 ? C.red : C.t3 }]}>{z.activeInc}</Text>
+                </View>
+              ))}
+            </View>
+            {filtZones.length === 0 && <Empty iconName="analytics-outline" title="No matches" />}
+          </ScrollView>
+        </View>
       ) : (
         <View style={{ flex: 1 }}>
           <View style={s.sbar}><Search value={q} onChange={setQ} placeholder="Search residents..." /></View>
           <View style={s.filterRow}>
-            <DropFilter label="Risk" value={fRisk} opts={['All','HIGH','MEDIUM','LOW']} onSelect={setFRisk} color={C.red} />
-            <DropFilter label="Zone" value={fZone} opts={['All', ...ZONES]}             onSelect={setFZone} />
+            <DropFilter label="Risk" value={fRisk} opts={['All', 'HIGH', 'MEDIUM', 'LOW']} onSelect={setFRisk} color={C.red} />
+            <DropFilter label="Zone" value={fZone} opts={['All', ...ZONES]}                onSelect={setFZone} />
           </View>
           <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
             <Text style={s.count}>{filtRes.length} of {resRisks.length}</Text>
@@ -122,7 +112,7 @@ export default function RiskScreen() {
                   <View style={{ flex: 2 }}>
                     <Text style={s.tdBold} numberOfLines={1}>{r.name}</Text>
                     <Text style={s.tdSub}>{r.zone}</Text>
-                    {(r.vulnerabilityTags||[]).length > 0 &&
+                    {(r.vulnerabilityTags || []).length > 0 &&
                       <Text style={s.tdTags} numberOfLines={1}>{r.vulnerabilityTags.join(', ')}</Text>}
                   </View>
                   <View style={{ flex: 1, paddingHorizontal: 6 }}>
@@ -190,15 +180,6 @@ const s = StyleSheet.create({
   topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 16, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
   title:     { fontSize: 17, fontWeight: '800', color: C.t1 },
-  kpiRow:    { flexDirection: 'row', gap: 7, padding: 11, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
-  oCard:     { flex: 2, borderRadius: 10, padding: 11, alignItems: 'center', borderWidth: 1 },
-  oLbl:      { fontSize: 8, color: C.t3, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
-  oScore:    { fontSize: 24, fontWeight: '800', lineHeight: 28 },
-  pill:      { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, marginTop: 3 },
-  pillTxt:   { fontSize: 9, fontWeight: '800' },
-  mini:      { flex: 1, backgroundColor: C.el, borderRadius: 10, padding: 9, alignItems: 'center', borderWidth: 1 },
-  miniV:     { fontSize: 17, fontWeight: '800' },
-  miniL:     { fontSize: 8, color: C.t3, fontWeight: '700', letterSpacing: 0.3, marginTop: 2 },
   tabBar:    { flexDirection: 'row', backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border, paddingHorizontal: 12 },
   tab:       { paddingVertical: 12, paddingHorizontal: 14, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabA:      { borderBottomColor: C.blue },
@@ -209,7 +190,7 @@ const s = StyleSheet.create({
   sbar:      { padding: 12, paddingBottom: 0, backgroundColor: C.card },
   filterRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   count:     { fontSize: 11, color: C.t3, paddingHorizontal: 14, paddingVertical: 8 },
-  tableWrap: { marginHorizontal: 12, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: C.border, marginTop: 8 },
+  tableWrap: { marginHorizontal: 12, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: C.border, marginTop: 4 },
   thead:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 10, backgroundColor: C.el },
   th:        { fontSize: 9, fontWeight: '700', color: C.t3, letterSpacing: 0.4 },
   trow:      { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 10, borderTopWidth: 1, borderTopColor: C.border, gap: 4 },
