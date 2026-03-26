@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { C } from '../styles/colors';
 
@@ -24,7 +25,8 @@ const MORE_TABS = TAB_ITEMS.slice(5);
 
 export function BottomTabNavigator({ currentRoute, onNavigate }) {
   const insets = useSafeAreaInsets();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const { log } = useApp();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
@@ -33,10 +35,13 @@ export function BottomTabNavigator({ currentRoute, onNavigate }) {
     setShowMoreMenu(false);
   };
 
-  const handleLogout = () => {
-    setShowLogoutModal(false);
-    logout();
-  };
+const handleLogout = async () => {
+  setShowLogoutModal(false);
+  if (log && user) {
+    log('Signed out: ' + user.name, 'Auth', user.name);
+  }
+  await logout();
+};
 
   return (
     <>
@@ -48,38 +53,73 @@ export function BottomTabNavigator({ currentRoute, onNavigate }) {
               <TouchableOpacity
                 key={item.name}
                 style={[s.tabItem, active && s.tabItemActive]}
-                onPress={() => onNavigate(item.name)}
+                onPress={() => handleNavigate(item.name)}
                 activeOpacity={0.7}
               >
                 <Ionicons
                   name={active ? item.iconActive : item.icon}
-                  size={22}
+                  size={20}
                   color={active ? C.blue : C.t3}
                 />
                 {active && <Text style={s.tabLabel}>{item.name}</Text>}
               </TouchableOpacity>
             );
           })}
-
-          {/* More Menu */}
           <TouchableOpacity
-            style={s.tabItem}
-            onPress={() => setShowMoreMenu(true)}
+            style={[s.tabItem, currentRoute === 'More' && s.tabItemActive]}
+            onPress={() => setShowMoreMenu(!showMoreMenu)}
             activeOpacity={0.7}
           >
-            <Ionicons name="ellipsis-horizontal" size={22} color={C.t3} />
-          </TouchableOpacity>
-
-          {/* Logout Button */}
-          <TouchableOpacity
-            style={[s.tabItem, s.logoutTabItem]}
-            onPress={() => setShowLogoutModal(true)}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="log-out-outline" size={22} color={C.red} />
+            <Ionicons
+              name={showMoreMenu ? 'ellipsis-vertical' : 'ellipsis-horizontal'}
+              size={20}
+              color={C.t3}
+            />
           </TouchableOpacity>
         </View>
+
+        {/* Logout Button - Icon only */}
+        <TouchableOpacity
+          style={s.logoutBtn}
+          onPress={() => setShowLogoutModal(true)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="log-out-outline" size={20} color={C.red} />
+        </TouchableOpacity>
       </View>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowLogoutModal(false)}>
+          <View style={s.modalOverlay} />
+        </TouchableWithoutFeedback>
+        <View style={s.modalCenter}>
+          <View style={s.modalBox}>
+            <Ionicons name="alert-circle-outline" size={44} color={C.red} style={{ marginBottom: 12 }} />
+            <Text style={s.modalTitle}>Sign Out</Text>
+            <Text style={s.modalMsg}>Are you sure you want to sign out?</Text>
+            <View style={s.modalBtns}>
+              <TouchableOpacity
+                style={s.modalCancelBtn}
+                onPress={() => setShowLogoutModal(false)}
+              >
+                <Text style={s.modalCancelTxt}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.modalLogoutBtn}
+                onPress={handleLogout}
+              >
+                <Text style={s.modalLogoutTxt}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* More Menu Modal */}
       <Modal
@@ -131,213 +171,39 @@ export function BottomTabNavigator({ currentRoute, onNavigate }) {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-
-      {/* Logout Confirmation Modal */}
-      <Modal
-        visible={showLogoutModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowLogoutModal(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setShowLogoutModal(false)}>
-          <View style={s.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={s.modalContent}>
-                <View style={s.modalHeader}>
-                  <Ionicons name="log-out-outline" size={24} color={C.red} />
-                  <Text style={s.modalTitle}>Sign Out?</Text>
-                </View>
-                <Text style={s.modalText}>
-                  Are you sure you want to sign out?
-                </Text>
-                <View style={s.modalActions}>
-                  <TouchableOpacity
-                    style={[s.modalBtn, s.modalBtnCancel]}
-                    onPress={() => setShowLogoutModal(false)}
-                  >
-                    <Text style={s.modalBtnTxtCancel}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[s.modalBtn, s.modalBtnLogout]}
-                    onPress={handleLogout}
-                  >
-                    <Text style={s.modalBtnTxt}>Sign Out</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
     </>
   );
 }
 
 const s = StyleSheet.create({
-  container: {
-    backgroundColor: C.card,
-    borderTopWidth: 1,
-    borderTopColor: C.border,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
-  },
-  tabItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  tabItemActive: {
-    backgroundColor: C.blue + '18',
-  },
-  logoutTabItem: {
-    marginLeft: 'auto',
-    marginRight: 8,
-  },
-  tabLabel: {
-    fontSize: 9,
-    color: C.blue,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: C.card,
-    borderRadius: 12,
-    padding: 20,
-    width: '80%',
-    maxWidth: 300,
-    borderWidth: 1,
-    borderColor: C.border,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: C.t1,
-  },
-  modalText: {
-    fontSize: 13,
-    color: C.t2,
-    marginBottom: 18,
-    lineHeight: 18,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'flex-end',
-  },
-  modalBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  modalBtnCancel: {
-    backgroundColor: C.el,
-    borderColor: C.border,
-  },
-  modalBtnTxtCancel: {
-    color: C.t1,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  modalBtnLogout: {
-    backgroundColor: C.red + '18',
-    borderColor: C.red + '55',
-  },
-  modalBtnTxt: {
-    color: C.red,
-    fontSize: 13,
-    fontWeight: '700',
-  },
+  container:      { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, borderTopWidth: 1, borderTopColor: C.border },
+  tabBar:         { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingVertical: 8 },
+  tabItem:        { alignItems: 'center', gap: 4, paddingVertical: 8, paddingHorizontal: 12 },
+  tabItemActive:  { backgroundColor: C.el, borderRadius: 12, paddingHorizontal: 14 },
+  tabLabel:       { fontSize: 9, fontWeight: '700', color: C.blue, letterSpacing: 0.3 },
+  logoutBtn:      { padding: 10, marginRight: 8, marginBottom: 4 },
+  modalOverlay:   { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
+  modalCenter:    { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
+  modalBox:       { backgroundColor: C.card, borderRadius: 14, padding: 20, width: '100%', borderWidth: 1, borderColor: C.border, alignItems: 'center' },
+  modalTitle:     { fontSize: 18, fontWeight: '800', color: C.t1, marginBottom: 8 },
+  modalMsg:       { fontSize: 14, color: C.t2, textAlign: 'center', marginBottom: 20, lineHeight: 20 },
+  modalBtns:      { flexDirection: 'row', gap: 12, width: '100%' },
+  modalCancelBtn: { flex: 1, backgroundColor: C.el, borderRadius: 10, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: C.border },
+  modalCancelTxt: { color: C.t2, fontSize: 13, fontWeight: '600' },
+  modalLogoutBtn: { flex: 1, backgroundColor: C.red, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  modalLogoutTxt: { color: '#fff', fontSize: 13, fontWeight: '800' },
 });
 
 const moreMenuStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: C.card,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 20,
-    maxHeight: '80%',
-    borderTopWidth: 1,
-    borderTopColor: C.border,
-  },
-  handle: {
-    width: 38,
-    height: 4,
-    backgroundColor: C.border,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: C.t1,
-    marginBottom: 12,
-    marginLeft: 4,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    marginBottom: 4,
-    borderRadius: 10,
-    gap: 12,
-  },
-  menuItemActive: {
-    backgroundColor: C.blue + '18',
-  },
-  menuIcon: {
-    minWidth: 20,
-  },
-  menuText: {
-    fontSize: 14,
-    color: C.t1,
-    fontWeight: '500',
-    flex: 1,
-  },
-  menuTextActive: {
-    color: C.blue,
-    fontWeight: '700',
-  },
-  closeBtn: {
-    backgroundColor: C.el,
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: C.border,
-  },
-  closeBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: C.t1,
-  },
+  overlay:           { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  sheet:             { backgroundColor: C.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingHorizontal: 16, paddingTop: 12, maxHeight: '88%', borderTopWidth: 1, borderTopColor: C.border },
+  handle:            { width: 38, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: 'center', marginBottom: 12 },
+  title:             { fontSize: 16, fontWeight: '700', color: C.t1, marginBottom: 12, paddingHorizontal: 4 },
+  menuItem:          { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: C.border, gap: 12 },
+  menuItemActive:    { backgroundColor: C.el, borderRadius: 8, marginHorizontal: 4, marginBottom: 4, borderBottomWidth: 0, paddingHorizontal: 16 },
+  menuIcon:          { width: 24 },
+  menuText:          { flex: 1, fontSize: 14, fontWeight: '600', color: C.t2 },
+  menuTextActive:    { color: C.blue, fontWeight: '700' },
+  closeBtn:          { backgroundColor: C.el, borderRadius: 10, padding: 14, alignItems: 'center', marginTop: 8, marginBottom: 16, borderWidth: 1, borderColor: C.border },
+  closeBtnText:      { fontSize: 14, fontWeight: '700', color: C.t1 },
 });

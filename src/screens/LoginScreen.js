@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { C } from '../styles/colors';
 
 export default function LoginScreen() {
-  const { loginUser } = useApp();
+  const { loginUser, log } = useApp();
   const { login } = useAuth();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
@@ -17,15 +17,18 @@ export default function LoginScreen() {
   const [showPass, setShowPass] = useState(false);
 
   async function submit() {
-    if (!email.trim() || !pass) { setErr('Enter email and password.'); return; }
-    setErr(''); setBusy(true);
-    try {
-      const r = await loginUser(email.trim(), pass);
-      if (!r.ok) setErr(r.msg || 'Login failed.');
-      else login(r.user);
-    } catch (e) { setErr(e.message || 'Error.'); }
-    setBusy(false);
-  }
+  if (!email.trim() || !pass) { setErr('Enter email and password.'); return; }
+  setErr(''); setBusy(true);
+  try {
+    const r = await loginUser(email.trim(), pass);
+    if (!r.ok) setErr(r.msg || 'Login failed.');
+else {
+  login(r.user);
+  log('Signed in: ' + r.user.name, 'Auth', r.user.name);
+}
+  } catch (e) { setErr(e.message || 'Error.'); }
+  setBusy(false);
+}
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

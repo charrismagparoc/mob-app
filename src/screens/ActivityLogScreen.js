@@ -18,13 +18,21 @@ const TYPE_ICON = {
   System:     { icon: 'settings',        color: C.t2     },
 };
 
+function formatDateTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const date = d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+  const time = d.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true });
+  return `${date}\n${time}`;
+}
+
 export default function ActivityLogScreen() {
   const insets = useSafeAreaInsets();
   const { activityLog, reload } = useApp();
   const { user } = useAuth();
-  const [q, setQ]                 = useState('');
+  const [q, setQ]                   = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
-  const [busy, setBusy]           = useState(false);
+  const [busy, setBusy]             = useState(false);
 
   useEffect(() => { setBusy(true); reload().finally(() => setBusy(false)); }, []);
 
@@ -53,9 +61,10 @@ export default function ActivityLogScreen() {
         <DropFilter label="Type" value={typeFilter} opts={types} onSelect={setTypeFilter} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}
-        refreshControl={<RefreshControl refreshing={busy} onRefresh={onRefresh} tintColor={C.blue} />}>
-
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 24 }}
+        refreshControl={<RefreshControl refreshing={busy} onRefresh={onRefresh} tintColor={C.blue} />}
+      >
         <View style={s.meta}>
           <SecHdr title="Audit Trail" count={activityLog.length} />
           <Text style={s.count}>{filtered.length} record{filtered.length !== 1 ? 's' : ''}</Text>
@@ -67,36 +76,66 @@ export default function ActivityLogScreen() {
             <Text style={[s.th, { flex: 3 }]}>ACTION</Text>
             <Text style={[s.th, { width: 66 }]}>TYPE</Text>
             <Text style={[s.th, { width: 60 }]}>USER</Text>
-            <Text style={[s.th, { width: 52, textAlign: 'right' }]}>DATE</Text>
+            <Text style={[s.th, { width: 64, textAlign: 'right' }]}>DATE & TIME</Text>
           </View>
+
           {filtered.map((log, i) => {
             const cfg = TYPE_ICON[log.type] || TYPE_ICON.System;
+
+            // Use sign-out icon for signed-out / timed-out auth entries
+            const isSignOut = log.type === 'Auth' && (
+              (log.action || '').toLowerCase().includes('signed out') ||
+              (log.action || '').toLowerCase().includes('sign out') ||
+              (log.action || '').toLowerCase().includes('timed out') ||
+              (log.action || '').toLowerCase().includes('session timed')
+            );
+            const iconName = isSignOut ? 'log-out' : cfg.icon;
+
             return (
               <View key={log.id || i} style={[s.trow, i % 2 === 1 && s.zebra]}>
                 <View style={[s.iconCircle, { backgroundColor: cfg.color + '20', width: 30 }]}>
-                  <Ionicons name={cfg.icon} size={13} color={cfg.color} />
+                  <Ionicons name={iconName} size={13} color={cfg.color} />
                 </View>
+
                 <View style={{ flex: 3, flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                   {log.urgent && <Ionicons name="alert-circle" size={10} color={C.red} />}
                   <Text style={s.td} numberOfLines={2}>{log.action || '—'}</Text>
                 </View>
+
                 <View style={{ width: 66 }}>
                   <View style={[s.typeBadge, { backgroundColor: cfg.color + '20' }]}>
                     <Text style={[s.typeTxt, { color: cfg.color }]}>{log.type || 'System'}</Text>
                   </View>
                 </View>
-                <Text style={[s.tdSub, { width: 60 }]} numberOfLines={1}>{log.userName || 'System'}</Text>
-                <Text style={[s.tdSub, { width: 52, textAlign: 'right' }]}>
-                  {log.createdAt ? new Date(log.createdAt).toLocaleDateString('en-PH',{ month:'short', day:'numeric' }) : '—'}
+
+                <Text style={[s.tdSub, { width: 60 }]} numberOfLines={1}>
+                  {log.userName || 'System'}
                 </Text>
+
+                {/* DATE + TIME stacked */}
+                <View style={{ width: 64, alignItems: 'flex-end' }}>
+                  {log.createdAt ? (() => {
+                    const d = new Date(log.createdAt);
+                    const date = d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+                    const time = d.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true });
+                    return (
+                      <>
+                        <Text style={s.dateText}>{date}</Text>
+                        <Text style={s.timeText}>{time}</Text>
+                      </>
+                    );
+                  })() : <Text style={s.tdSub}>—</Text>}
+                </View>
               </View>
             );
           })}
         </View>
+
         {filtered.length === 0 && !busy &&
-          <Empty iconName="list-outline" title={activityLog.length === 0 ? 'No activity yet' : 'No matching records'} />}
+          <Empty iconName="list-outline" title={activityLog.length === 0 ? 'No activity yet' : 'No matching records'} />
+        }
       </ScrollView>
-      </View>
+    </View>
   );
 }
 
@@ -115,8 +154,9 @@ const s = StyleSheet.create({
   tdSub:      { fontSize: 10, color: C.t3 },
   typeBadge:  { paddingHorizontal: 6, paddingVertical: 3, borderRadius: 4 },
   typeTxt:    { fontSize: 9, fontWeight: '700' },
-  topBar:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 14, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
-  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  title:     { fontSize: 17, fontWeight: '800', color: C.t1 },
-
+  topBar:     { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 14, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:    { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:      { fontSize: 17, fontWeight: '800', color: C.t1 },
+  dateText:   { fontSize: 10, color: C.t3, textAlign: 'right' },
+  timeText:   { fontSize: 9, color: C.t3, textAlign: 'right', marginTop: 2, opacity: 0.75 },
 });

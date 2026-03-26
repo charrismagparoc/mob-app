@@ -50,17 +50,6 @@ export default function ReportsScreen() {
         <Text style={s.pageTitle}>Reports & Analytics</Text>
         <Text style={s.pageSub}>Live overview — Barangay Kauswagan</Text>
 
-        <View style={s.row}>
-          <KPI value={incidents.length} label="Total Inc."  color={C.orange} iconName="warning-outline"       />
-          <KPI value={active.length}    label="Active"      color={C.red}    iconName="alert-circle-outline"  />
-          <KPI value={incidents.filter(i=>i.status==='Resolved').length} label="Resolved" color={C.green} iconName="checkmark-circle-outline" />
-        </View>
-        <View style={[s.row, { marginTop: 0 }]}>
-          <KPI value={residents.length} label="Residents"   color={C.purple} iconName="people-outline"        />
-          <KPI value={pctOcc + '%'}     label="Evac Occ."   color={C.blue}   iconName="location-outline"      />
-          <KPI value={alerts.length}    label="Alerts"      color={C.yellow} iconName="megaphone-outline"     />
-        </View>
-
         {/* Incidents by Type */}
         <View style={s.section}>
           <SecHdr title="Incidents by Type" />

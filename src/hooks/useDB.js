@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SB_URL, SB_KEY, ZONE_COORDS } from '../data/constants';
+import { createClient } from '@supabase/supabase-js';
+import { useCallback, useEffect, useState } from 'react';
+import { SB_KEY, SB_URL, ZONE_COORDS } from '../data/constants';
 
 export const sb = createClient(SB_URL, SB_KEY, {
   auth: {
@@ -89,13 +89,14 @@ export function useDB() {
       const { data: found } = await sb.from('users').select('*').ilike('email', email.trim()).eq('password', password).eq('status', 'Active').single();
       if (!found) return { ok: false, msg: 'Wrong email or password.' };
       log('Signed in: ' + found.name, 'Auth', found.name);
+      await reload(); // ← fetch fresh activity log after login, includes last sign-out
       return { ok: true, user: { id: found.id, name: found.name, email: found.email, role: found.role } };
     } catch (_) {
       const local = users.find(u => u.email?.toLowerCase() === email.trim().toLowerCase() && u.password === password && u.status === 'Active');
       if (local) return { ok: true, user: { id: local.id, name: local.name, email: local.email, role: local.role } };
       return { ok: false, msg: 'Cannot connect. Check internet.' };
     }
-  }, [users, log]);
+  }, [users, log, reload]);
 
   const addIncident = useCallback(async (d, user) => {
     const p = gps(d.zone);
@@ -206,7 +207,7 @@ export function useDB() {
   }, []);
 
   return {
-    loading, reload,
+    loading, reload, log,
     incidents, alerts, evacCenters, residents, resources, users, activityLog,
     loginUser,
     addIncident, updateIncident, deleteIncident,
