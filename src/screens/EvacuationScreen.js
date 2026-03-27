@@ -256,37 +256,47 @@ export default function EvacuationScreen() {
 
         <Text style={s.count}>{list.length} center{list.length !== 1 ? 's' : ''}</Text>
 
-        <View style={s.tableWrap}>
-          <View style={s.thead}>
-            <Text style={[s.th, { flex: 2.5 }]}>CENTER</Text>
-            <Text style={[s.th, { width: 56 }]}>STATUS</Text>
-            <Text style={[s.th, { flex: 1.5 }]}>OCCUPANCY</Text>
-            <Text style={[s.th, { width: 60, textAlign: 'right' }]}>ACT</Text>
-          </View>
-          {list.map((c, idx) => {
+        <View style={{ paddingHorizontal: 12, gap: 10 }}>
+          {list.map((c) => {
             const pct = c.capacity > 0 ? Math.min(Math.round(c.occupancy / c.capacity * 100), 100) : 0;
+            const barColor = pct >= 90 ? C.red : pct >= 70 ? C.orange : C.green;
             return (
-              <TouchableOpacity key={String(c.id)} style={[s.trow, idx % 2 === 1 && s.zebra]}
+              <TouchableOpacity key={String(c.id)} style={s.card}
                 onPress={() => setDetail(c)} activeOpacity={0.7}>
-                <View style={{ flex: 2.5 }}>
-                  <Text style={s.tdBold} numberOfLines={1}>{c.name}</Text>
-                  <Text style={s.tdSub} numberOfLines={1}>{c.zone}{c.contactPerson ? '  ·  ' + c.contactPerson : ''}</Text>
-                  {(c.facilitiesAvailable || []).length > 0 &&
-                    <Text style={s.tdSub} numberOfLines={1}>{c.facilitiesAvailable.join(', ')}</Text>}
+
+                {/* Top Row: Name + Badge */}
+                <View style={s.cardTop}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.tdBold} numberOfLines={1}>{c.name}</Text>
+                    <Text style={s.tdSub} numberOfLines={1}>
+                      {c.zone}{c.contactPerson ? '  ·  ' + c.contactPerson : ''}
+                    </Text>
+                    {(c.facilitiesAvailable || []).length > 0 &&
+                      <Text style={s.tdSub} numberOfLines={1}>{c.facilitiesAvailable.join(', ')}</Text>}
+                  </View>
+                  <Badge label={c.status} variant={c.status} />
                 </View>
-                <View style={{ width: 56 }}><Badge label={c.status} variant={c.status} /></View>
-                <View style={{ flex: 1.5 }}>
-                  <Text style={s.tdSub}>{c.occupancy}/{c.capacity} ({pct}%)</Text>
-                  <Bar value={c.occupancy} max={c.capacity} height={5} />
+
+                {/* Divider */}
+                <View style={s.divider} />
+
+                {/* Bottom Row: Occupancy + Actions */}
+                <View style={s.cardBottom}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.tdSub}>{c.occupancy}/{c.capacity} ({pct}%)</Text>
+                    <Bar value={c.occupancy} max={c.capacity} height={5} color={barColor} />
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 6, marginLeft: 10 }}>
+                    <EditBtn   onPress={() => openEdit(c)}    />
+                    <DeleteBtn onPress={() => setDelId(c.id)} />
+                  </View>
                 </View>
-                <View style={{ width: 60, flexDirection: 'row', justifyContent: 'flex-end', gap: 5 }}>
-                  <EditBtn   onPress={() => openEdit(c)}    />
-                  <DeleteBtn onPress={() => setDelId(c.id)} />
-                </View>
+
               </TouchableOpacity>
             );
           })}
         </View>
+
         {list.length === 0 && <Empty iconName="location-outline" title="No centers yet" />}
       </ScrollView>
 
@@ -322,21 +332,20 @@ export default function EvacuationScreen() {
 }
 
 const s = StyleSheet.create({
-  topBar:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 16, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
-  logoRow:   { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  title:     { fontSize: 17, fontWeight: '800', color: C.t1 },
-  addBtn:    { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.blue, borderRadius: 50, paddingHorizontal: 18, paddingVertical: 10 },
-  addTxt:    { color: '#fff', fontWeight: '800', fontSize: 13 },
-  bar:       { flexDirection: 'row', gap: 10, padding: 12, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
-  filterRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
-  count:     { fontSize: 11, color: C.t3, paddingHorizontal: 14, paddingVertical: 8 },
-  tableWrap: { marginHorizontal: 12, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: C.border },
-  thead:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 10, backgroundColor: C.el },
-  th:        { fontSize: 9, fontWeight: '700', color: C.t3, letterSpacing: 0.4 },
-  trow:      { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 10, borderTopWidth: 1, borderTopColor: C.border, gap: 6 },
-  zebra:     { backgroundColor: 'rgba(255,255,255,0.02)' },
-  tdBold:    { fontSize: 12, fontWeight: '600', color: C.t1 },
-  tdSub:     { fontSize: 10, color: C.t3, marginTop: 2 },
+  topBar:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingBottom: 16, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  logoRow:    { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  title:      { fontSize: 17, fontWeight: '800', color: C.t1 },
+  addBtn:     { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.blue, borderRadius: 50, paddingHorizontal: 18, paddingVertical: 10 },
+  addTxt:     { color: '#fff', fontWeight: '800', fontSize: 13 },
+  bar:        { flexDirection: 'row', gap: 10, padding: 12, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  filterRow:  { flexDirection: 'row', gap: 8, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
+  count:      { fontSize: 11, color: C.t3, paddingHorizontal: 14, paddingVertical: 8 },
+  card:       { backgroundColor: C.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: C.border },
+  cardTop:    { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  cardBottom: { flexDirection: 'row', alignItems: 'center' },
+  divider:    { height: 1, backgroundColor: C.border, marginVertical: 10 },
+  tdBold:     { fontSize: 13, fontWeight: '700', color: C.t1 },
+  tdSub:      { fontSize: 11, color: C.t3, marginTop: 2 },
 });
 
 const d = StyleSheet.create({
