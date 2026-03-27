@@ -296,57 +296,57 @@ export default function ResourcesScreen() {
 
         <Text style={s.count}>{list.length} item{list.length !== 1 ? 's' : ''}</Text>
 
-        <View style={s.tableWrap}>
-          <View style={s.thead}>
-            {selectMode && <View style={{ width: 28 }} />}
-            <Text style={[s.th, { flex: 2 }]}>NAME / CATEGORY</Text>
-            <Text style={[s.th, { flex: 1.5 }]}>AVAILABILITY</Text>
-            <Text style={[s.th, { width: 64 }]}>STATUS</Text>
-            <Text style={[s.th, { width: 54 }]}>STATE</Text>
-            {!selectMode && <Text style={[s.th, { width: 54, textAlign: 'right' }]}>ACT</Text>}
-          </View>
-
-          {list.map((r, idx) => {
+        <View style={{ paddingHorizontal: 12, gap: 10 }}>
+          {list.map((r) => {
             const pct        = r.quantity > 0 ? Math.round(r.available / r.quantity * 100) : 0;
             const stock      = getStock(r.available, r.quantity, r.status);
+            const barColor   = pct >= 50 ? '#4caf50' : pct >= 20 ? '#f4511e' : '#e53935';
             const isSelected = selected.includes(r.id);
             return (
               <TouchableOpacity
                 key={String(r.id)}
-                style={[s.trow, idx % 2 === 1 && s.zebra, isSelected && s.rowSelected]}
+                style={[s.card, isSelected && s.cardSelected]}
                 onPress={() => selectMode ? toggleItem(r.id) : setDetail(r)}
                 activeOpacity={0.7}>
-                {selectMode && (
-                  <View style={{ width: 28, alignItems: 'center' }}>
+
+                {/* Top Row: Checkbox (select mode) + Name + Badge */}
+                <View style={s.cardTop}>
+                  {selectMode && (
                     <Ionicons
                       name={isSelected ? 'checkbox' : 'square-outline'}
-                      size={18} color={isSelected ? C.red : C.t3} />
+                      size={18} color={isSelected ? C.red : C.t3}
+                      style={{ marginRight: 6 }} />
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.tdBold} numberOfLines={1}>{r.name}</Text>
+                    <Text style={s.tdSub} numberOfLines={1}>{r.category}{r.location ? '  ·  ' + r.location : ''}</Text>
                   </View>
-                )}
-                <View style={{ flex: 2 }}>
-                  <Text style={s.tdBold} numberOfLines={1}>{r.name}</Text>
-                  <Text style={s.tdSub} numberOfLines={1}>{r.category}{r.location ? '  ·  ' + r.location : ''}</Text>
+                  <Badge label={r.status || 'Available'} variant={r.status === 'Available' ? 'success' : 'warning'} />
                 </View>
-                <View style={{ flex: 1.5 }}>
-                  <Text style={s.tdSub}>{r.available}/{r.quantity} {r.unit||'pcs'} ({pct}%)</Text>
-                  <Bar value={r.available} max={r.quantity} height={5} />
-                </View>
-                <View style={{ width: 64 }}>
-                  <Badge label={r.status||'Available'} variant={r.status==='Available'?'success':'warning'} />
-                </View>
-                <View style={{ width: 54 }}>
-                  <Text style={[s.stockTxt, { color: stock.color }]}>{stock.label}</Text>
-                </View>
-                {!selectMode && (
-                  <View style={{ width: 54, flexDirection: 'row', justifyContent: 'flex-end', gap: 5 }}>
-                    <EditBtn   onPress={() => openEdit(r)}    />
-                    <DeleteBtn onPress={() => setDelId(r.id)} />
+
+                {/* Divider */}
+                <View style={s.divider} />
+
+                {/* Bottom Row: Stock state + Availability bar + Actions */}
+                <View style={s.cardBottom}>
+                  <Text style={[s.stockTxt, { color: stock.color, marginRight: 8 }]}>{stock.label}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.tdSub}>{r.available}/{r.quantity} {r.unit || 'pcs'} ({pct}%)</Text>
+                    <Bar value={r.available} max={r.quantity} height={5} color={barColor} />
                   </View>
-                )}
+                  {!selectMode && (
+                    <View style={{ flexDirection: 'row', gap: 6, marginLeft: 10 }}>
+                      <EditBtn   onPress={() => openEdit(r)}    />
+                      <DeleteBtn onPress={() => setDelId(r.id)} />
+                    </View>
+                  )}
+                </View>
+
               </TouchableOpacity>
             );
           })}
         </View>
+
         {list.length === 0 && <Empty iconName="cube-outline" title="No resources yet" />}
       </ScrollView>
 
@@ -413,17 +413,14 @@ const s = StyleSheet.create({
   alertTxt:       { color: '#fff', fontSize: 12, fontWeight: '700', flex: 1 },
   filterRow:      { flexDirection: 'row', gap: 8, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   count:          { fontSize: 11, color: C.t3, paddingHorizontal: 14, paddingVertical: 8 },
-  tableWrap:      { marginHorizontal: 12, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: C.border },
-  thead:          { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 10, backgroundColor: C.el },
-  th:             { fontSize: 9, fontWeight: '700', color: C.t3, letterSpacing: 0.4 },
-  trow:           { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 10, borderTopWidth: 1, borderTopColor: C.border, gap: 6 },
-  zebra:          { backgroundColor: 'rgba(255,255,255,0.02)' },
-  rowSelected:    { backgroundColor: C.red + '18' },
-  tdBold:         { fontSize: 12, fontWeight: '600', color: C.t1 },
+  card:           { backgroundColor: C.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: C.border },
+  cardSelected:   { backgroundColor: C.red + '18', borderColor: C.red + '44' },
+  cardTop:        { flexDirection: 'row', alignItems: 'flex-start' },
+  cardBottom:     { flexDirection: 'row', alignItems: 'center' },
+  divider:        { height: 1, backgroundColor: C.border, marginVertical: 10 },
+  tdBold:         { fontSize: 13, fontWeight: '700', color: C.t1 },
   tdSub:          { fontSize: 10, color: C.t3, marginTop: 2 },
   stockTxt:       { fontSize: 10, fontWeight: '700' },
-  logoutBtn:      { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(232,72,85,0.12)', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 7, borderWidth: 1, borderColor: C.red + '44' },
-  logoutTxt:      { color: C.red, fontSize: 11, fontWeight: '700' },
 });
 
 const d = StyleSheet.create({
