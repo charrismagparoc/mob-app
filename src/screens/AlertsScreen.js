@@ -12,7 +12,7 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
+  View, 
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Confirm, DeleteBtn, Empty } from '../components/Shared';
@@ -21,7 +21,7 @@ import { useAuth } from '../context/AuthContext';
 import { ALT_LEVELS, ZONES } from '../data/constants';
 import { C } from '../styles/colors';
 
-/* ─── constants ─────────────────────────────────────────────── */
+
 const LCOLOR = { Danger: C.red, Warning: C.orange, Advisory: C.blue, Resolved: C.green };
 const ALL_Z  = ['All Zones', ...ZONES];
 const EF     = { level: 'Advisory', zone: 'All Zones', message: '' };
@@ -33,7 +33,7 @@ const QUICK = [
   { label: 'All Clear',       level: 'Resolved', zone: 'All Zones', icon: 'shield-checkmark',msg: 'ALL CLEAR: Emergency resolved. Residents may return to normal activities.'     },
 ];
 
-/* ─── tiny level-picker ──────────────────────────────────────── */
+
 function LevelPicker({ value, onChange, open, onToggle }) {
   return (
     <View style={{ flex: 1, zIndex: open ? 20 : 1 }}>
@@ -54,7 +54,7 @@ function LevelPicker({ value, onChange, open, onToggle }) {
   );
 }
 
-/* ─── tiny zone-picker ───────────────────────────────────────── */
+
 function ZonePicker({ value, onChange, open, onToggle }) {
   return (
     <View style={{ flex: 1, zIndex: open ? 20 : 1 }}>
@@ -75,9 +75,7 @@ function ZonePicker({ value, onChange, open, onToggle }) {
   );
 }
 
-/* ─── Send Alert Modal ───────────────────────────────────────── */
-// `saving` is owned by the parent and passed as a prop.
-// `handleSave` is synchronous — async lives in the parent only.
+
 function SendAlertModal({ visible, onClose, onSave, saving, initialForm, residents = [] }) {
   const [form, setForm]         = useState({ ...EF });
   const [resQ, setResQ]         = useState('');
@@ -88,7 +86,7 @@ function SendAlertModal({ visible, onClose, onSave, saving, initialForm, residen
   const msgInputRef  = useRef(null);
   const resSearchRef = useRef(null);
 
-  // Reset form every time the modal becomes visible
+  
   function onShow() {
     setForm(initialForm ? { ...initialForm } : { ...EF });
     setSelected([]);
@@ -123,7 +121,7 @@ function SendAlertModal({ visible, onClose, onSave, saving, initialForm, residen
     setSelected(s => s.length === filteredRes.length ? [] : filteredRes.map(r => r.id));
   }
 
-  // Synchronous — just validates and delegates to parent
+  
   function handleSave() {
     if (!form.message.trim()) return;
     const selectedNames = residents
@@ -288,7 +286,7 @@ function SendAlertModal({ visible, onClose, onSave, saving, initialForm, residen
   );
 }
 
-/* ─── history item ───────────────────────────────────────────── */
+
 function HistoryItem({ a, onDelete }) {
   const color = LCOLOR[a.level] || C.blue;
   const date  = a.created_at
@@ -315,7 +313,7 @@ function HistoryItem({ a, onDelete }) {
   );
 }
 
-/* ─── stat card ──────────────────────────────────────────────── */
+
 function StatCard({ value, label, color, icon }) {
   return (
     <View style={[sc.card, { borderColor: color + '33' }]}>
@@ -328,7 +326,7 @@ function StatCard({ value, label, color, icon }) {
   );
 }
 
-/* ─── main screen ────────────────────────────────────────────── */
+
 export default function AlertsScreen() {
   const insets = useSafeAreaInsets();
   const { alerts, addAlert, deleteAlert, reload, residents } = useApp();
@@ -337,7 +335,7 @@ export default function AlertsScreen() {
   const [show, setShow]     = useState(false);
   const [initForm, setInit] = useState(null);
   const [delId, setDelId]   = useState(null);
-  const [saving, setSaving] = useState(false); // owned here, passed as prop to modal
+  const [saving, setSaving] = useState(false); 
   const [busy, setBusy]     = useState(false);
 
   const list = alerts.filter(a =>
@@ -357,8 +355,7 @@ export default function AlertsScreen() {
     setShow(true);
   }
 
-  // Async owned here — passes exactly the fields addAlert in useDB expects:
-  // { level, zone, message } + userName string
+  
   async function handleSave(form, selectedResidents, selectedNames) {
     setSaving(true);
     try {
@@ -386,7 +383,7 @@ export default function AlertsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
 
-      {/* ── top bar ── */}
+      {/* top bar */}
       <View style={[s.topBar, { paddingTop: insets.top + 10 }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, flex: 1 }}>
           <Ionicons name="shield-checkmark" size={20} color={C.blue} />
@@ -402,7 +399,7 @@ export default function AlertsScreen() {
         contentContainerStyle={{ paddingBottom: 30 }}
         refreshControl={<RefreshControl refreshing={busy} onRefresh={onRefresh} tintColor={C.blue} />}
       >
-        {/* ── stats ── */}
+        {/* stats */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.statsRow}>
           <StatCard value={counts.total}    label="TOTAL SENT" color={C.blue}   icon="megaphone"           />
           <StatCard value={counts.danger}   label="DANGER"     color={C.red}    icon="warning"             />
@@ -411,7 +408,7 @@ export default function AlertsScreen() {
           <StatCard value={counts.resolved} label="RESOLVED"   color={C.green}  icon="checkmark-circle"    />
         </ScrollView>
 
-        {/* ── quick broadcast ── */}
+        {/* quick broadcast */}
         <View style={s.section}>
           <View style={s.secHdr}>
             <Ionicons name="flash" size={15} color={C.orange} />
@@ -435,7 +432,7 @@ export default function AlertsScreen() {
           </View>
         </View>
 
-        {/* ── search ── */}
+        {/* search */}
         <View style={s.searchWrap}>
           <Ionicons name="search" size={16} color={C.t3} style={{ marginRight: 8 }} />
           <TextInput
@@ -447,7 +444,7 @@ export default function AlertsScreen() {
           />
         </View>
 
-        {/* ── alert history ── */}
+        {/* alert history */}
         <View style={s.section}>
           <View style={s.secHdr}>
             <Ionicons name="notifications" size={15} color={C.blue} />
@@ -461,7 +458,7 @@ export default function AlertsScreen() {
         </View>
       </ScrollView>
 
-      {/* ── modal ── */}
+      {/* modal */}
       <SendAlertModal
         visible={show}
         onClose={() => setShow(false)}
@@ -482,7 +479,6 @@ export default function AlertsScreen() {
   );
 }
 
-/* ─── styles ─────────────────────────────────────────────────── */
 const s = StyleSheet.create({
   topBar:      { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.border },
   pageTitle:   { fontSize: 16, fontWeight: '800', color: C.t1 },
