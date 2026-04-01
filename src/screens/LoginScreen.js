@@ -34,6 +34,7 @@ export default function LoginScreen() {
         contentContainerStyle={[s.center, { paddingTop: Math.max(insets.top, 20) + 20, paddingBottom: Math.max(insets.bottom, 20) + 20 }]}
         keyboardShouldPersistTaps="handled">
         <View style={s.card}>
+
           {/* Logo */}
           <View style={s.logoBox}>
             <Ionicons name="shield-checkmark" size={36} color={C.blue} />
@@ -84,14 +85,11 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           <View style={s.hint}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 6 }}>
-              <Ionicons name="information-circle-outline" size={13} color={C.t3} />
-              <Text style={s.hintH}>Demo Credentials</Text>
-            </View>
             <Text style={s.hintL}>admin@kauswagan.gov.ph  /  admin123</Text>
           </View>
 
-          <Text style={s.foot}>BDRRMC v3.0 · Powered by Supabase</Text>
+          <Text style={s.foot}>Powered by BDRRMC · 2025</Text>
+
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -115,7 +113,6 @@ const s = StyleSheet.create({
   btnOff:  { opacity: 0.5 },
   btnTxt:  { color: '#fff', fontSize: 15, fontWeight: '700' },
   hint:    { backgroundColor: C.el, borderRadius: 8, padding: 13, marginTop: 18, borderWidth: 1, borderColor: C.border },
-  hintH:   { fontSize: 10, fontWeight: '700', color: C.t3, textTransform: 'uppercase', letterSpacing: 0.5 },
   hintL:   { fontSize: 12, color: C.t2 },
   foot:    { textAlign: 'center', fontSize: 10, color: C.t3, marginTop: 18 },
 });
